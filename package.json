@@ -77,11 +77,11 @@
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
     "@vitejs/plugin-react": "6.1.1",
-    "electron": "44.2.0",
+    "electron": "44.3.0",
     "electron-builder": "26.15.3",
     "patch-package": "8.0.1",
     "typescript": "7.0.2",
-    "vite": "8.2.2"
+    "vite": "8.3.0"
   },
   "build": {
     "appId": "io.github.dshdesktop.app",
