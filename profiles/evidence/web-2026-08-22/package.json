@@ -1,0 +1,25 @@
+{
+  "name": "dsh-profile-web",
+  "private": true,
+  "packageManager": "pnpm@11.21.0",
+  "dependencies": {
+    "@omdsh-dev/dsh-genui": "github:omdsh-dev/dsh-genui#2187fa48dfb05126850d3a1516be910718afdc79",
+    "aegis": "github:GanyuanRan/Aegis#fea84dd545385ebdbe1c7ceab0d2afb8fe9d4600",
+    "dsh-at-file": "git+https://github.com/omdsh-dev/dsh-at-file.git#c37b0ed9e8bf3585bf9f272462dcf01886efe2a3",
+    "dsh-better-sidebar": "0.15.2",
+    "dshmarket": "1.19.0-beta.1"
+  },
+  "dsh": {
+    "profile": {
+      "bundles": [
+        "@deepseek-ai/dsh-base",
+        "@deepseek-ai/dsh-web-app",
+        "dsh-at-file",
+        "dshmarket",
+        "@omdsh-dev/dsh-genui",
+        "aegis",
+        "dsh-better-sidebar"
+      ]
+    }
+  }
+}

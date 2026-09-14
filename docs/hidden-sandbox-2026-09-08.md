@@ -1,0 +1,9 @@
+# Background command execution
+
+The installed desktop already preloads the Windows Node child-process hiding wrapper. The uncovered sandbox path calls native CreateProcessAsUserW, bypassing that wrapper. Both native piped and inherited-stdio startup structures now use STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW (257) and SW_HIDE (0). Restricted tokens, job lifecycle, stdio handles and native creation flags remain unchanged. CREATE_NO_WINDOW is not introduced.
+
+The exact installed 0.1.2-rc.1 file and matching hash-pinned compatibility recipe were patched. The original files are backed up at `C:\Users\1\.codex\backups\auto-config-upgrades\2026-09-08-231828-hidden-sandbox`. Restore win32-index.js to the candidate dsh-win32-process/lib/index.js and the respective recipe backups to roll back, then restart only DSH.
+
+Validation: the installed Electron Node-mode host and installed preload launched the actual restricted-token runner, PowerShell, and a console Node child. All three modes returned exit code zero, consoleVisible=false and full JSON stdout. Read-only denied both workspace and outside writes; workspace-write allowed workspace writes and denied outside writes; unrestricted allowed both. Scratch files were confined to newly created test folders; no user files were modified. The smoke script is scripts/verify-hidden-sandbox.cjs. 24 wrapper and approved-visual-baseline tests passed; native patch hash/idempotence verification passed.
+
+Limit: the console visibility measurement happens inside the executed child, not continuous desktop video or a window-event trace. This does not prove every arbitrary plugin or program that explicitly opens another GUI will remain invisible. No permissions were relaxed, no default terminal settings were changed, no installer was rebuilt or uploaded.

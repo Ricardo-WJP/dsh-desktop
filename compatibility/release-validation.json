@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "releaseEligible": false,
+  "reason": "Performance and final candidate acceptance pending",
+  "desktopVersion": null,
+  "manifestSha256": null,
+  "provenance": {
+    "type": "reviewer-acceptance",
+    "limitation": "This reviewer acceptance report is not cryptographic proof that performance suites or tests ran."
+  }
+}

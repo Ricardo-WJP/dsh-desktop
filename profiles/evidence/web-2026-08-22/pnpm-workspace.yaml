@@ -1,0 +1,17 @@
+packages:
+  - .
+
+nodeLinker: hoisted
+autoInstallPeers: false
+minimumReleaseAgeExclude:
+  - dsh-better-sidebar
+  - dshmarket
+  - '@omdsh-dev/dsh-genui'
+  - aegis
+
+allowBuilds:
+  dsh-better-sidebar@git+https://github.com/omdsh-dev/DSH-better-sidebar.git: true
+  '@omdsh-dev/dsh-genui@git+https://github.com/omdsh-dev/dsh-genui.git': true
+  aegis@git+https://github.com/GanyuanRan/Aegis.git: true
+  dshmarket@git+https://github.com/dsh-market/dsh-market.git: true
+  node-pty: true

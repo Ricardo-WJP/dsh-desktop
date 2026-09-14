@@ -1,0 +1,3 @@
+# Preserve the exact bytes of existing approved CSS and hash-pinned evidence.
+# Do not let checkout platform/autocrlf rewrite fixtures or runtime recipes.
+* -text

@@ -1,0 +1,73 @@
+:root {
+  color-scheme: dark;
+  --color-canvas: #141414;
+  --color-surface: #222325;
+  --color-surface-raised: #2b2c2f;
+  --color-surface-soft: #1d1e20;
+  --color-line: #3a3c40;
+  --color-line-strong: #55585d;
+  --color-ink: #f5f5f7;
+  --color-ink-muted: #c0c4ca;
+  --color-ink-subtle: #a2a7af;
+  --color-accent: #9fb8ff;
+  --color-accent-strong: #6f90ff;
+  --color-accent-wash: rgba(111, 144, 255, .13);
+  --color-positive: #76d6ae;
+  --color-positive-wash: rgba(118, 214, 174, .12);
+  --color-warning: #f0c77d;
+  --color-warning-wash: rgba(240, 199, 125, .12);
+  --color-danger: #ff9a9d;
+  --color-danger-wash: rgba(255, 154, 157, .12);
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --text-xs: .72rem;
+  --text-sm: .82rem;
+  --text-md: .94rem;
+  --text-lg: 1.18rem;
+  --text-xl: clamp(1.8rem, 3vw, 2.75rem);
+  --text-display: clamp(2.25rem, 5vw, 4.5rem);
+  --space-1: .25rem;
+  --space-2: .5rem;
+  --space-3: .75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --radius-sm: .5rem;
+  --radius-md: .8rem;
+  --radius-lg: 1.15rem;
+  --radius-xl: 1.55rem;
+  --elevation-panel: 0 16px 40px rgba(0, 0, 0, .18);
+  --elevation-float: 0 24px 70px rgba(0, 0, 0, .28);
+  --motion-fast: 140ms ease;
+  --motion-standard: 220ms cubic-bezier(.22, 1, .36, 1);
+  --content-max: 1380px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+    --color-canvas: #f3f5f8;
+    --color-surface: #ffffff;
+    --color-surface-raised: #f8fafc;
+    --color-surface-soft: #eef2f7;
+    --color-line: #dbe2eb;
+    --color-line-strong: #c4cfdd;
+    --color-ink: #152033;
+    --color-ink-muted: #536176;
+    --color-ink-subtle: #606b7a;
+    --color-accent: #3459d4;
+    --color-accent-strong: #2345b9;
+    --color-accent-wash: rgba(52, 89, 212, .09);
+    --color-positive: #087b56;
+    --color-positive-wash: rgba(8, 123, 86, .09);
+    --color-warning: #9a6100;
+    --color-warning-wash: rgba(154, 97, 0, .09);
+    --color-danger: #bd3442;
+    --color-danger-wash: rgba(189, 52, 66, .08);
+    --elevation-panel: 0 14px 34px rgba(30, 50, 75, .08);
+    --elevation-float: 0 20px 55px rgba(30, 50, 75, .14);
+  }
+}

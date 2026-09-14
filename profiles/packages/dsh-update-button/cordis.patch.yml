@@ -1,0 +1,9 @@
+# dsh-update-button bundle patch: registers the web-profile update button
+# plugin row. The host half is intentionally inert; the browser half adds a
+# small official sidebar slot action and delegates navigation to Desktop.
+#
+# The row is a bare plugin by package name and its client bundle is loaded by
+# dsh.client.
+- insert:
+    - id: update-button
+      name: dsh-update-button

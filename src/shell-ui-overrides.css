@@ -1,0 +1,98 @@
+      /* ---- dsh-desktop shell UI overrides ---- */
+
+      /* Settings main panel: solid content surface + rounded top-left corner.
+         The page/nav layers below are kept transparent (see below), so the
+         corner is visible against the window surface — same language as the
+         chat panel on the main page. */
+      .dcu-settings-main {
+        position: relative;
+        background-color: var(--dsw-alias-bg-base, rgb(21, 21, 23)) !important;
+        border-top-left-radius: 16px !important;
+      }
+      /* The real titlebar already owns dragging; don't cover page controls. */
+      .dcu-settings-page,
+      nav.dcu-settings-nav { background-color: transparent !important; }
+      nav.dcu-settings-nav { color: var(--dsw-alias-label-primary); border-right: 0 !important; box-shadow: none !important; }
+      /* Only the six desktop toolbar controls, not native window captions. */
+      #dsh-desktop-titlebar button {
+        border-radius: 10px !important;
+        corner-shape: superellipse(1.5) !important;
+      }
+      /* Preserve native turn order and hit targets; ticks grow to the right. */
+      [data-dcu-official-turn-navigator] button::before {
+        left: 0;
+        right: auto;
+      }
+      nav.dcu-settings-nav .dcu-settings-link:not(:disabled):not([aria-disabled="true"]) {
+        color: var(--dsw-alias-label-primary);
+      }
+      .dcu-settings-main { min-width: 0; }
+      .dcu-settings-main, .dcu-settings-inner { color: var(--dsw-alias-label-secondary) !important; }
+      .dcu-settings-heading, .dcu-settings-main h1, .dcu-settings-main h2 { color: var(--dsw-alias-label-primary-dimmed) !important; }
+      .dcu-settings-card, .dcu-settings-row { border-color: var(--dsw-alias-border-l1) !important; background-color: var(--dsw-alias-bg-layer-1) !important; }
+      .dcu-settings-main input, .dcu-settings-main [class*="dsh-desktop-appearance"] { border-color: var(--dsw-alias-border-l1) !important; }
+
+      /* Settings page surfaces keep the app's own colours: the nav renders on
+         the app's native rgba(26,27,29,0.8) and the page wrapper on its own
+         #181818 — no overrides here, so the palette always matches the rest
+         of the UI. Main panel text colours are normalized below. */
+
+      /* Sidebar-width grip: sits ENTIRELY inside the settings nav (an 8px hot
+         zone). It used to straddle the nav/main boundary, where the main panel
+         captured the pointer and the drag never started. */
+      [data-dsh-shell-ui-resize] {
+        position: fixed;
+        width: 8px;
+        cursor: col-resize;
+        z-index: 2147483647;
+      }
+
+      /* While dragging the grip the cursor stays col-resize across the whole
+         window (it used to flip back to default over the main panel). */
+      body.dsh-shell-ui-dragging,
+      body.dsh-shell-ui-dragging * {
+        cursor: col-resize !important;
+      }
+
+      body.dsh-signal-settings-open div:has(> .dshDesktopTitlebarDrag) {
+        visibility: visible !important;
+        position: relative;
+        z-index: 2147483646;
+      }
+      body.dsh-signal-settings-open .dshDesktopTitlebarDrag,
+      body.dsh-signal-settings-open .dshDesktopTitlebarControls {
+        visibility: visible !important;
+      }
+      body.dsh-signal-settings-open .dcu-settings-page {
+        position: fixed !important;
+        inset: 40px 0 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+      }
+      /* A compact-sidebar transition must not become the fixed page's
+         containing block. Keep this scoped to ancestors of the open page. */
+      body.dsh-signal-settings-open :is(.dcu-root, .dcu-foot, .dcu-settings-seat, [class*="_sidebarCol"]):has(.dcu-settings-page) {
+        transform: none !important;
+        filter: none !important;
+        contain: none !important;
+        will-change: auto !important;
+      }
+      [data-dsh-shell-ui-chat-root] { border-top-left-radius: 16px !important; }
+      [data-dsh-shell-ui-composer] [class*="_card"] { border-radius: 24px !important; overflow: visible; }
+
+      /* Only the on/off switch stays a pill (its track must be a capsule);
+         every other control keeps the app's own radius. */
+      .re-setting-switch { border-radius: 999px !important; corner-shape: round !important; }
+      .re-setting-switch-knob { border-radius: 50% !important; corner-shape: round !important; }
+      [data-dsh-boot-spinner] { border-radius: 50% !important; corner-shape: round !important; }
+      [class*="_spinner"], [class*="Spinner"], .dyn-opt-spinner {
+        corner-shape: round !important;
+      }
+      button[role="switch"] { border-radius: 999px !important; corner-shape: round !important; }
+      [class*="_switchKnob"] { border-radius: 50% !important; corner-shape: round !important; }
+      .aag-switch-track { border-radius: 999px !important; corner-shape: round !important; }
+      .aag-switch-track::after { border-radius: 50% !important; corner-shape: round !important; }
+
+      button[aria-label*="完全权限"] { color: #f07f47 !important; }
+      button[aria-label*="完全权限"] svg { color: #f07f47 !important; }

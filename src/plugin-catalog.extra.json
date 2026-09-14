@@ -1,0 +1,18 @@
+{
+  "comment": "Locally curated entries that are not yet guaranteed to appear in the upstream registry. They remain optional and install only after an explicit user action.",
+  "plugins": [
+    {
+      "name": "dsh-reasoning-effort",
+      "owner": "HanaAyane",
+      "url": "https://github.com/HanaAyane/dsh-reasoning-effort",
+      "spec": "github:HanaAyane/dsh-reasoning-effort",
+      "category": "model",
+      "description": {
+        "zh": "为支持推理强度的模型提供 Codex 风格档位选择，并根据当前模型能力自动调整可用选项。",
+        "en": "Adds Codex-style reasoning-effort controls and adapts the available levels to the selected model."
+      },
+      "stars": 112,
+      "added": "2026-08-26"
+    }
+  ]
+}

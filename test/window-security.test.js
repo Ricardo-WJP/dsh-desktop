@@ -1,0 +1,63 @@
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import test from 'node:test'
+import { canPluginSurfaceUse, PLUGIN_COMPATIBILITY, pluginOwnerFor } from '../src/plugin-compatibility.js'
+
+const windowHost = readFileSync(new URL('../src/window-host.js', import.meta.url), 'utf8')
+const host = readFileSync(new URL('../src/ipc/desktop-host.js', import.meta.url), 'utf8')
+const preload = readFileSync(new URL('../build/preload/preload.cjs', import.meta.url), 'utf8')
+const workspacePreload = readFileSync(new URL('../build/preload/workspace-preload.cjs', import.meta.url), 'utf8')
+
+test('management and workspace BrowserWindows keep the security baseline', () => {
+  assert.match(windowHost, /function createManagementWindow\(\)/)
+  assert.match(windowHost, /function createWorkspaceWindow\(\)/)
+  assert.match(windowHost, /PRELOAD_FILES/)
+  assert.match(windowHost, /generatedPreloadPath\(role\)/)
+  assert.ok((windowHost.match(/contextIsolation: true/g) ?? []).length >= 1)
+  assert.ok((windowHost.match(/nodeIntegration: false/g) ?? []).length >= 1)
+  assert.ok((windowHost.match(/sandbox: true/g) ?? []).length >= 1)
+  assert.ok((windowHost.match(/webSecurity: true/g) ?? []).length >= 1)
+  assert.match(windowHost, /installManagementNavigation\(window\)/)
+  assert.match(windowHost, /createManagementNavigationPolicy/)
+  assert.match(windowHost, /will-redirect/)
+  assert.doesNotMatch(windowHost, /pluginManager|plugins\.html/)
+})
+
+test('preload exposes explicit methods but no Node or raw IPC surface', () => {
+  assert.match(preload, /contextBridge\.exposeInMainWorld\('dshDesktop'/)
+  assert.match(preload, /status: Object\.freeze/)
+  assert.match(preload, /candidate: Object\.freeze/)
+  assert.match(preload, /snapshots: Object\.freeze/)
+  assert.match(preload, /logs: Object\.freeze/)
+  const managementBridge = preload.slice(preload.indexOf("contextBridge.exposeInMainWorld"))
+  const workspaceBridge = workspacePreload.slice(workspacePreload.indexOf("contextBridge.exposeInMainWorld"))
+  assert.doesNotMatch(managementBridge, /openPath|publishWorkspaceContext/)
+  assert.match(workspaceBridge, /openPath/)
+  assert.match(workspaceBridge, /publishWorkspaceContext/)
+  assert.match(workspacePreload, /dsh-desktop-titlebar/)
+  assert.match(workspacePreload, /#dsh-desktop-titlebar\{[^']*border-bottom:0/)
+  assert.match(workspacePreload, /titlebarNavigate/)
+  assert.match(workspacePreload, /titlebarMenu/)
+  assert.match(workspacePreload, /location\.protocol === 'file:'/)
+  assert.match(workspacePreload, /loading\|error/)
+  assert.match(workspacePreload, /app-region:drag/)
+  assert.match(workspacePreload, /app-region:no-drag/)
+  assert.match(workspacePreload, /-webkit-app-region:drag/)
+  assert.doesNotMatch(workspaceBridge, /\n  status:|\n  plugins:|\n  snapshots:|\n  mode:/)
+  assert.doesNotMatch(preload, /dshPluginManager|plugins:/)
+  assert.doesNotMatch(preload, /process\.|require\(['"]node:/)
+  assert.doesNotMatch(workspacePreload, /process\.|require\(['"]node:/)
+  assert.doesNotMatch(preload, /send\s*:\s*\(/)
+})
+
+test('desktop IPC host validates the sender and arguments before privileged plugin operations', () => {
+  assert.match(host, /function trustedManagement\(event\)/)
+  assert.match(host, /validatePluginSpec\(spec\)/)
+  assert.match(host, /validatePluginName\(name\)/)
+  assert.match(host, /validateSourceUrl\(url\)/)
+  assert.match(host, /senderOwnsPluginCapability\(event, 'catalog'\)/)
+  assert.match(host, /unavailable\('Snapshot creation'\)/)
+  assert.equal(pluginOwnerFor('catalog'), PLUGIN_COMPATIBILITY.legacySurface)
+  assert.equal(pluginOwnerFor('mutation'), PLUGIN_COMPATIBILITY.legacySurface)
+  assert.equal(canPluginSurfaceUse('mutation', PLUGIN_COMPATIBILITY.reactRole), false)
+})

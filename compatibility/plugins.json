@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "sourceEvidence": "profiles/evidence/web-2026-08-22",
+  "order": [
+    "@dsh-external/dsh-task-status",
+    "@dsh-external/dsh-visualize",
+    "@linxin666/dsh-client-ui-activity-heatmap",
+    "@liustack/modlens",
+    "@nanmicoder/dsh-agent-teams",
+    "@omdsh-dev/dsh-annotation",
+    "aegis",
+    "dsh-better-sidebar",
+    "dsh-codex-connect",
+    "dsh-design-skills",
+    "dsh-expression",
+    "dsh-health-tool",
+    "dsh-mnemon",
+    "dsh-notification",
+    "dsh-restart-tool",
+    "dsh-skill-manager-ytxue",
+    "dsh-update-button",
+    "dsh-usage-stats",
+    "dshmarket"
+  ],
+  "defaultOrder": [],
+  "localPackages": {
+    "@liustack/modlens": "profiles/packages/modlens",
+    "dsh-health-tool": "profiles/packages/dsh-health-tool",
+    "dsh-restart-tool": "profiles/packages/dsh-restart-tool",
+    "dsh-update-button": "profiles/packages/dsh-update-button"
+  }
+}

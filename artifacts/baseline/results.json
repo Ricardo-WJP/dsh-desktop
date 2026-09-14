@@ -1,0 +1,56 @@
+{
+  "source": {
+    "upstream": "https://github.com/liguobao/dsh-desktop.git",
+    "commit": "5a7fd60a74511071a1ca8034dd93b3c27ce21475",
+    "branch": "feat/ricardo-stable-client"
+  },
+  "completedAt": "2026-08-21T19:42:25.6544854+08:00",
+  "commands": [
+    {
+      "command": "npm ci",
+      "exitCode": 0,
+      "summary": "753 packages installed; patch-package applied; 0 audit vulnerabilities"
+    },
+    {
+      "command": "npm test",
+      "exitCode": 0,
+      "summary": "81 tests passed; 0 failed; duration 17222.1781 ms"
+    },
+    {
+      "command": "npm run check",
+      "exitCode": 0,
+      "summary": "All configured Node syntax checks passed"
+    },
+    {
+      "command": "npm run dist:windows",
+      "exitCode": 0,
+      "summary": "Windows setup and portable packages produced"
+    }
+  ],
+  "unpacked": {
+    "files": 23794,
+    "bytes": 646582833
+  },
+  "artifacts": [
+    {
+      "name": "DSH-Desktop-v0.1.34-windows-x64-setup.exe",
+      "bytes": 167985700,
+      "sha256": "64D7DADEB8E771E9F14B8ABFA6E2B825FEE1BEFA00D763BAE2E06E532E1FC5C5",
+      "authenticode": "NotSigned"
+    },
+    {
+      "name": "DSH-Desktop-v0.1.34-windows-x64-portable.exe",
+      "bytes": 167711768,
+      "sha256": "9CE8ED77869AE196B333CD6A74A08DFEC1776D8D2B671A16A29D95A517AFD7F7",
+      "authenticode": "NotSigned"
+    }
+  ],
+  "liveBoundaryUnchanged": true,
+  "observations": [
+    "Upstream disables asar; electron-builder marks this strongly discouraged",
+    "electron-builder reports a large duplicate-dependency reference set",
+    "npm prints deprecated transitive-package warnings but reports 0 audit vulnerabilities",
+    "UNDICI-EHPA experimental proxy-agent warnings do not fail installation, tests, syntax checks, or packaging"
+  ],
+  "complete": true
+}

@@ -1,0 +1,81 @@
+/* Approved A: native DSH operation-first control center, cbf0029e.
+   Scoped to the management shell; never injected into the chat workspace. */
+.diagnostics-cards { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr); gap: 16px; }
+.diagnostics-cards .panel__header > div { min-width: 0; }
+.diagnostics-cards .panel__title { overflow-wrap: anywhere; }
+.diagnostics-file-path { max-width: 100%; overflow-wrap: anywhere; white-space: normal; font-size: 14px; line-height: 1.6; user-select: text; }
+@media (max-width: 1000px) {
+  .diagnostics-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .diagnostics-file-card { grid-column: 1 / -1; }
+}
+@media (max-width: 460px) {
+  .diagnostics-cards { grid-template-columns: minmax(0, 1fr); }
+}
+.native-shell { display: flex; flex-direction: row; min-height: 100vh; font-size: 14px; background: var(--color-canvas); }
+.native-shell .native-sidebar { position: sticky; top: 0; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; flex: 0 0 210px; width: 210px; height: 100vh; max-width: none; margin: 0; padding: 34px 16px 22px; border: 0; border-right: 1px solid var(--color-line); background: var(--color-surface-soft); }
+.native-shell .topbar__brand-row { display: block; padding: 0; }
+.native-shell .wordmark { margin: 0 0 36px; padding: 0; width: 100%; min-height: 36px; }
+.native-wordmark { display: block; width: 100%; max-width: 182px; }
+.native-wordmark img { display: block; width: 100%; height: auto; }
+.native-shell .wordmark__name { font-size: 28px; font-weight: 750; letter-spacing: -.025em; }
+.native-shell .topnav { width: 100%; padding: 0; border: 0; overflow: visible; }
+.native-shell .topnav__inner { display: grid; gap: 6px; width: 100%; padding: 0; }
+.native-shell .nav-item { width: 100%; min-height: 42px; padding: 9px 14px; border: 0; justify-content: flex-start; font-size: 14px; }
+.native-shell .nav-item__icon { border: 0; width: 18px; height: 18px; }
+.native-shell .nav-item--active { background: var(--color-surface-raised); }
+.native-shell .nav-item--active::after { content: none; }
+.native-shell .operation-row__icon { color: var(--color-ink-muted); }
+@media (prefers-color-scheme: light) {
+  :root { --color-canvas: #fff; --color-surface-soft: #f1f2f4; --color-surface-raised: #e8eaed; --color-line: #e1e2e5; --color-line-strong: #b8bcc3; --color-ink: #202123; --color-ink-muted: #5e626b; --color-ink-subtle: #666b74; }
+}
+.native-sidebar__footer { margin-top: auto; padding: 24px 10px 0; color: var(--color-ink-muted); font-size: 12px; }
+.native-sidebar__footer p { margin: 12px 0 0; }
+.native-shell .main-content { min-width: 0; width: 0; flex: 1; }
+.native-shell .route-content { max-width: 1140px; padding: 44px clamp(24px, 4vw, 64px) 40px; }
+.native-shell h1 { font-size: 28px; line-height: 1.3; letter-spacing: -.025em; margin: 0; }
+.native-shell .lede { font-size: 14px; margin-top: 10px; }
+.native-shell .button { min-height: 36px; padding: 8px 16px; font-size: 13px; }
+.native-shell .control-center__columns, .native-shell .control-center__left { display: grid; grid-template-columns: minmax(0, 1fr); gap: 30px; }
+.native-shell .control-panel { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.native-shell .readiness-panel { display: block; min-height: 0; }
+.native-shell .readiness-panel__copy { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 24px; width: 100%; }
+.native-shell .readiness-panel__heading { display: block; }
+.native-shell .readiness-panel__copy .lede { grid-column: 1; }
+.native-shell .readiness-panel__actions { grid-column: 2; grid-row: 1 / 3; margin: 0; align-self: center; }
+.native-status-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 12px 0; border-top: 1px solid var(--color-line); border-bottom: 1px solid var(--color-line); color: var(--color-ink-muted); font-size: 13px; }
+.native-status-strip > .button { margin-left: auto; }
+.native-shell .status-pill { background: transparent; border: 0; padding: 0; }
+.native-shell .panel__title { font-size: 17px; }
+.native-shell .operations-panel__header, .native-shell .activity-panel__header { padding: 0 0 14px; margin: 0; }
+.native-shell .operation-row { grid-template-columns: 24px minmax(0, 1fr) auto; gap: 16px; padding: 22px 0; }
+.native-shell .operation-row__icon { width: 24px; height: 24px; border: 0; border-radius: 0; background: transparent; }
+.native-shell .operation-row__body h3 { font-size: 14px; }
+.native-shell .operation-row__body p { font-size: 13px; line-height: 1.6; }
+.native-shell .activity-row { padding-left: 0; padding-right: 0; }
+.native-shell .native-runtime { position: static; border-top: 1px solid var(--color-line); padding-top: 18px; }
+.native-runtime > summary { width: fit-content; cursor: pointer; padding: 6px 0; font-size: 14px; font-weight: 600; }
+.native-runtime > summary:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 4px; border-radius: 4px; }
+.native-shell .runtime-panel { margin-top: 20px; max-width: 760px; }
+.native-shell .runtime-panel .panel__header { display: none; }
+.native-shell .runtime-panel__footer { flex-wrap: wrap; }
+@media (max-width: 900px) {
+  .native-shell .native-sidebar { flex-basis: 172px; width: 172px; padding-inline: 10px; }
+  .native-shell .route-content { padding: 28px 24px; }
+  .native-shell .readiness-panel__copy { display: flex; flex-direction: column; gap: 10px; }
+  .native-shell .readiness-panel__actions { align-self: flex-start; margin-top: 8px; }
+  .native-shell .readiness-panel__copy .lede { margin: 0; }
+}
+@media (max-width: 620px) {
+  .native-shell { flex-direction: column; }
+  .native-shell .native-sidebar { position: static; width: 100%; height: auto; flex: none; padding: 16px; border-right: 0; border-bottom: 1px solid var(--color-line); }
+  .native-shell .wordmark { margin: 0 0 14px; padding: 0 8px; }
+  .native-shell .wordmark__name { font-size: 22px; }
+  .native-shell .topnav__inner { display: flex; flex-wrap: wrap; gap: 4px; }
+  .native-shell .nav-item { width: auto; min-height: 36px; padding: 7px 10px; gap: 6px; font-size: 12px; }
+  .native-sidebar__footer { display: none; }
+  .native-shell .main-content { width: 100%; }
+  .native-shell .route-content { padding: 24px 20px; }
+  .native-shell .operation-row { grid-template-columns: 24px minmax(0, 1fr); }
+  .native-shell .operation-row > .button { grid-column: 2; justify-self: start; }
+  .native-shell h1 { font-size: 25px; }
+}

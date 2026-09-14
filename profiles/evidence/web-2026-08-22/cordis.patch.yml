@@ -1,0 +1,6 @@
+# Default profile patch layer. It contains only desktop-safe base settings;
+# installed plugin patches come from the selected bundle itself or the user's
+# own profile, never from a second installer-owned plugin list.
+- id: web
+  config:
+    searchProvider: openai-codex

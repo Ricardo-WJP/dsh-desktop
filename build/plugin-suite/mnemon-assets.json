@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "version": "0.2.3",
+  "release": "https://github.com/mnemon-dev/mnemon/releases/tag/v0.2.3",
+  "assets": {
+    "win32-x64": {
+      "filename": "mnemon_0.2.3_windows_amd64.zip",
+      "url": "https://github.com/mnemon-dev/mnemon/releases/download/v0.2.3/mnemon_0.2.3_windows_amd64.zip",
+      "sha256": "50ecf473e5be80d7070ba16bf76e2aa59bd61029d19842c659a24142986f8b16",
+      "executable": "mnemon.exe"
+    },
+    "darwin-x64": {
+      "filename": "mnemon_0.2.3_darwin_amd64.tar.gz",
+      "url": "https://github.com/mnemon-dev/mnemon/releases/download/v0.2.3/mnemon_0.2.3_darwin_amd64.tar.gz",
+      "sha256": "dd25daf163126e7493d38e27166ac744238a2d6c97fee65ec7ce45de23260317",
+      "executable": "mnemon"
+    },
+    "darwin-arm64": {
+      "filename": "mnemon_0.2.3_darwin_arm64.tar.gz",
+      "url": "https://github.com/mnemon-dev/mnemon/releases/download/v0.2.3/mnemon_0.2.3_darwin_arm64.tar.gz",
+      "sha256": "edec0278672f32b059c269ceb495bd1c2857bea44793229b9c781d28762fdd27",
+      "executable": "mnemon"
+    }
+  }
+}

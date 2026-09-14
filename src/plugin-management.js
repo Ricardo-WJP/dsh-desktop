@@ -1,0 +1,1005 @@
+import { MAX_COMMAND_OUTPUT_LENGTH, runOwnedCommand } from './owned-command.js'
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  writeFileSync,
+} from 'node:fs'
+import { cp, rm } from 'node:fs/promises'
+import { dirname, join, resolve } from 'node:path'
+import { parse, stringify } from 'yaml'
+
+export const PLUGIN_PROFILE = 'web'
+export const MAX_PLUGIN_SPEC_LENGTH = 300
+export const MAX_PLUGIN_OUTPUT_LENGTH = MAX_COMMAND_OUTPUT_LENGTH
+export const SYSTEM_BUNDLES = new Set(['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app'])
+const PLUGIN_INSTALL_HISTORY = '.dsh-desktop-plugin-history.json'
+const DEFAULT_PLUGIN_STATE = '.dsh-desktop-default-plugins.json'
+
+function nodePreloadArguments(hiddenChildProcess) {
+  return typeof hiddenChildProcess === 'string' && hiddenChildProcess.trim() !== ''
+    ? ['--require', hiddenChildProcess]
+    : []
+}
+
+/** Optional plugins are intentionally not installed automatically. */
+export const DEFAULT_PLUGINS = Object.freeze([])
+export const BUNDLED_REMOTE_SPEC = 'github:liguobao/deepseek-harness-remote#9df2052098ee264edc0d0b9245367a063458c81e'
+export const BUNDLED_FILE_VIEWER_SPEC = 'github:liguobao/dsh-file-viewer#eacc407e205ffa4a37fbc36b0b99927a4ad68020'
+const LEGACY_BUNDLED_REMOTE_SPECS = new Set([
+  'github:liguobao/deepseek-harness-remote#v0.3.21',
+  'github:liguobao/deepseek-harness-remote#5f5e8dfa7f0f7a9f45c1e6165ba23fd28b577d6d',
+  'github:liguobao/deepseek-harness-remote#v0.3.20',
+  'github:liguobao/deepseek-harness-remote#v0.3.19',
+  'github:liguobao/deepseek-harness-remote#v0.3.18',
+  'github:liguobao/deepseek-harness-remote#4e4ab9e0162273b5c3eb3a8bbb90929ec58c2a7c',
+  'github:liguobao/deepseek-harness-remote#599bd5a4d14b980c8101575eca5c36a12007a2f8',
+  'github:liguobao/deepseek-harness-remote#633bf08f9bac174fc6dbe37738786ebb83421c24',
+  'github:liguobao/deepseek-harness-remote#3a271eaeaa649647ec27e137fb7321526799a749',
+  'github:liguobao/deepseek-harness-remote#a4826a4e48008adcbc15d7f075926657d87629e0',
+  'github:liguobao/deepseek-harness-remote#da4beadabb57096a66b3ca790fd85a340a0ca899',
+])
+const LEGACY_BUNDLED_FILE_VIEWER_SPECS = new Set([
+  'github:liguobao/dsh-file-viewer#v0.2.3',
+  'github:liguobao/dsh-file-viewer#v0.2.2',
+  'github:liguobao/dsh-file-viewer#v0.2.1',
+  'github:liguobao/dsh-file-viewer#ed2f9ede3ada97145b3701aa8a09f45fc229f53f',
+  'github:liguobao/dsh-file-viewer#a4d6e2cbf6424a47f93d735070741df391d5ede4',
+  'github:liguobao/dsh-file-viewer#605cd34b9e96ad7775f37493b701a601b97efeee',
+  'github:liguobao/dsh-file-viewer#4295572d3192fd4685aeda42b34a7ddb4b793754',
+  '0.1.3',
+])
+
+const PROFILE_SYSTEM_BUNDLES = { web: ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app'] }
+const PROFILE_PNPM_WORKSPACE = 'packages:\n  - .\n\nnodeLinker: hoisted\nautoInstallPeers: false\n'
+
+// All profile writers use this one in-process owner. The queue is keyed by the
+// physical DSH home/profile pair so background defaults and the legacy manager
+// cannot mutate package.json, lockfiles, or bundle metadata concurrently.
+const PROFILE_WRITE_QUEUES = new Map()
+
+function abortError(signal) {
+  return signal?.reason instanceof Error ? signal.reason : new Error('Profile operation aborted')
+}
+
+async function waitForProfileTurn(previous, signal) {
+  if (signal === undefined) return previous
+  if (signal.aborted) throw abortError(signal)
+  let onAbort
+  const aborted = new Promise((_, reject) => {
+    onAbort = () => reject(abortError(signal))
+    signal.addEventListener('abort', onAbort, { once: true })
+  })
+  try {
+    return await Promise.race([previous, aborted])
+  } finally {
+    signal.removeEventListener('abort', onAbort)
+  }
+}
+
+/**
+ * Resolve the physical profile path before queueing. On Windows the filesystem
+ * is case-insensitive, so equivalent DSH-home spellings must share one queue.
+ * This is a key normalizer only; the existing PROFILE_WRITE_QUEUES remains the
+ * sole write owner.
+ */
+export function profileWriteLockKey({ dshHome, profile = PLUGIN_PROFILE } = {}) {
+  if (typeof dshHome !== 'string' || dshHome.length === 0) throw new TypeError('Invalid DSH home')
+  if (typeof profile !== 'string' || profile.length === 0) throw new TypeError('Invalid profile')
+  const physicalProfile = resolve(dshHome, 'profiles', profile)
+  return (process.platform === 'win32' ? physicalProfile.toLowerCase() : physicalProfile)
+}
+
+/** Run one profile mutation under the shared exclusive owner and abort path. */
+export async function withProfileWriteLock({ dshHome, profile = PLUGIN_PROFILE, signal } = {}, action) {
+  if (typeof dshHome !== 'string' || dshHome.length === 0) throw new TypeError('Invalid DSH home')
+  if (typeof profile !== 'string' || profile.length === 0) throw new TypeError('Invalid profile')
+  if (typeof action !== 'function') throw new TypeError('Invalid profile writer')
+  const key = profileWriteLockKey({ dshHome, profile })
+  const previous = PROFILE_WRITE_QUEUES.get(key) ?? Promise.resolve()
+  let release
+  let released = false
+  let entered = false
+  const gate = new Promise(resolve => { release = resolve })
+  const releaseOnce = () => {
+    if (released) return
+    released = true
+    release()
+  }
+  const tail = previous.catch(() => undefined).then(() => gate)
+  PROFILE_WRITE_QUEUES.set(key, tail)
+  // A canceled waiter must not release its gate while the active writer still
+  // owns the profile. Release it only after the predecessor settles, so a
+  // later writer cannot pass the active critical section through the canceled
+  // node.
+  void tail.then(() => {
+    if (PROFILE_WRITE_QUEUES.get(key) === tail) PROFILE_WRITE_QUEUES.delete(key)
+  })
+  try {
+    await waitForProfileTurn(previous, signal)
+    if (signal?.aborted) throw abortError(signal)
+    entered = true
+    return await action()
+  } finally {
+    if (entered) releaseOnce()
+    else void previous.catch(() => undefined).then(releaseOnce)
+  }
+}
+
+const PACKAGE_NAME_PATTERN = /^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/i
+const PACKAGE_SELECTOR_PATTERN = /^[a-z0-9~^*<>=|+_.-]+$/i
+const GITHUB_OWNER_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,38})$/i
+const GITHUB_REPOSITORY_PATTERN = /^[a-z0-9._-]+$/i
+const GITHUB_REF_PATTERN = /^[a-z0-9][a-z0-9._\/-]{0,127}$/i
+const GITHUB_PACKAGE_PATH_PATTERN = /^\/[a-z0-9][a-z0-9._\/-]{0,255}$/i
+const GITHUB_BUILD_SCRIPTS = new Set(['preinstall', 'install', 'postinstall', 'prepublish', 'prepack', 'prepare', 'publish'])
+
+function readJson(path) {
+  return JSON.parse(readFileSync(path, 'utf8'))
+}
+
+function writeJsonAtomic(path, value) {
+  mkdirSync(dirname(path), { recursive: true })
+  const temporary = `${path}.tmp-${String(process.pid)}-${String(Date.now())}`
+  writeFileSync(temporary, `${JSON.stringify(value, undefined, 2)}\n`, { mode: 0o600 })
+  renameSync(temporary, path)
+}
+
+function writeTextAtomic(path, value) {
+  const temporary = `${path}.tmp-${String(process.pid)}-${String(Date.now())}`
+  writeFileSync(temporary, value, { mode: 0o600 })
+  renameSync(temporary, path)
+}
+
+function readPluginInstallHistory(profileDir) {
+  try {
+    const value = readJson(join(profileDir, PLUGIN_INSTALL_HISTORY))
+    if (value?.version !== 1 || typeof value.installedAt !== 'object' || value.installedAt === null || Array.isArray(value.installedAt)) return {}
+    return Object.fromEntries(Object.entries(value.installedAt).filter(([name, timestamp]) =>
+      PACKAGE_NAME_PATTERN.test(name) && typeof timestamp === 'string' && Number.isFinite(Date.parse(timestamp)),
+    ))
+  } catch {
+    return {}
+  }
+}
+
+function recordPluginInstalled(profileDir, name) {
+  const installedAt = readPluginInstallHistory(profileDir)
+  installedAt[name] = new Date().toISOString()
+  writeJsonAtomic(join(profileDir, PLUGIN_INSTALL_HISTORY), { version: 1, installedAt })
+}
+
+function forgetPluginInstallHistory(profileDir, name) {
+  const installedAt = readPluginInstallHistory(profileDir)
+  if (!Object.hasOwn(installedAt, name)) return
+  delete installedAt[name]
+  writeJsonAtomic(join(profileDir, PLUGIN_INSTALL_HISTORY), { version: 1, installedAt })
+}
+
+function readDefaultPluginState(profileDir) {
+  try {
+    const value = readJson(join(profileDir, DEFAULT_PLUGIN_STATE))
+    if (value?.version !== 1 || !Array.isArray(value.seen)) return { version: 1, seen: [] }
+    return {
+      version: 1,
+      seen: value.seen.filter(key => typeof key === 'string' && key.length > 0 && key.length <= MAX_PLUGIN_SPEC_LENGTH),
+    }
+  } catch {
+    return { version: 1, seen: [] }
+  }
+}
+
+function writeDefaultPluginState(profileDir, state) {
+  writeJsonAtomic(join(profileDir, DEFAULT_PLUGIN_STATE), state)
+}
+
+function defaultPluginKey(normalized) {
+  return normalized.source === 'github'
+    ? `github:${normalized.repository.toLowerCase()}${normalized.path === undefined ? '' : `#path:${normalized.path}`}`
+    : `npm:${normalized.packageName}`
+}
+
+function packageManifestPath(profileDir, packageName) {
+  return join(profileDir, 'node_modules', ...packageName.split('/'), 'package.json')
+}
+
+function readInstalledManifest(profileDir, packageName) {
+  try {
+    return readJson(packageManifestPath(profileDir, packageName))
+  } catch {
+    return undefined
+  }
+}
+
+function installedPluginRequiresBuild(profileDir, packageName) {
+  const manifest = readInstalledManifest(profileDir, packageName)
+  const scripts = manifest?.scripts
+  const declaresBuildScript = scripts !== undefined && scripts !== null && typeof scripts === 'object'
+    && Object.entries(scripts).some(([name, command]) =>
+      GITHUB_BUILD_SCRIPTS.has(name) && typeof command === 'string' && command.trim() !== '',
+    )
+  return declaresBuildScript || existsSync(join(profileDir, 'node_modules', ...packageName.split('/'), 'binding.gyp'))
+}
+
+function pluginMetadata(profileDir, packageName, requested, enabled, installedAt) {
+  const manifest = readInstalledManifest(profileDir, packageName)
+  const bundle = manifest?.dsh?.bundle?.patch !== undefined
+  return {
+    name: packageName,
+    requested,
+    source: /^(?:github:|git\+https:\/\/github\.com\/|https:\/\/github\.com\/)/i.test(requested) ? 'github' : 'npm',
+    version: typeof manifest?.version === 'string' ? manifest.version : undefined,
+    description: typeof manifest?.description === 'string' ? manifest.description : undefined,
+    homepage: typeof manifest?.homepage === 'string' ? manifest.homepage : undefined,
+    installed: manifest !== undefined,
+    ...(installedAt === undefined ? {} : { installedAt }),
+    bundle,
+    enabled: bundle && enabled,
+  }
+}
+
+export function profileDirectory(dshHome, profile = PLUGIN_PROFILE) {
+  return join(dshHome, 'profiles', profile)
+}
+
+/**
+ * Initialize a profile directory the same way the Harness does before its
+ * first boot, so default plugins can install into a well-formed profile.
+ * Existing files are never touched, so this is a no-op on an initialized
+ * profile and never overrides a user-owned manifest.
+ */
+export function ensureProfileInitialized(dshHome, profile = PLUGIN_PROFILE) {
+  const profileDir = profileDirectory(dshHome, profile)
+  mkdirSync(profileDir, { recursive: true })
+  const manifestPath = join(profileDir, 'package.json')
+  if (!existsSync(manifestPath)) {
+    writeJsonAtomic(manifestPath, {
+      name: `dsh-profile-${profile}`,
+      private: true,
+      dependencies: {},
+      dsh: { profile: { bundles: [...(PROFILE_SYSTEM_BUNDLES[profile] ?? ['@deepseek-ai/dsh-base'])] } },
+    })
+  }
+  const workspacePath = join(profileDir, 'pnpm-workspace.yaml')
+  if (!existsSync(workspacePath)) writeTextAtomic(workspacePath, PROFILE_PNPM_WORKSPACE)
+  return profileDir
+}
+
+function dependencyDirectory(sourceDir, name) {
+  const parts = name.split('/')
+  let current = sourceDir
+  while (true) {
+    const candidate = join(current, 'node_modules', ...parts)
+    if (existsSync(join(candidate, 'package.json'))) return candidate
+    const parent = dirname(current)
+    if (parent === current) return undefined
+    current = parent
+  }
+}
+
+function bundledDependencyClosure(sourceDir) {
+  const packages = new Map()
+  const visit = (directory) => {
+    const manifest = readJson(join(directory, 'package.json'))
+    if (packages.has(manifest.name)) return
+    packages.set(manifest.name, directory)
+    const dependencies = { ...manifest.dependencies, ...manifest.optionalDependencies }
+    for (const name of Object.keys(dependencies)) {
+      const dependency = dependencyDirectory(directory, name)
+      if (dependency !== undefined) visit(dependency)
+    }
+  }
+  visit(sourceDir)
+  return packages
+}
+
+function bundledPluginFilesAvailable(directory, manifest) {
+  return [manifest.main, manifest.dsh?.bundle?.patch].every(path =>
+    typeof path !== 'string' || path.trim() === '' || existsSync(join(directory, path)),
+  )
+}
+
+/** Seed a prebuilt bundled plugin and its runtime dependency closure without network access. */
+export function installBundledPlugin(options) {
+  return withProfileWriteLock(options, () => installBundledPluginUnlocked(options))
+}
+
+async function installBundledPluginUnlocked({
+  dshHome,
+  sourceDir,
+  profile = PLUGIN_PROFILE,
+  spec,
+  packageName,
+  legacySpecs = new Set(),
+}) {
+  const profileDir = ensureProfileInitialized(dshHome, profile)
+  const manifestPath = join(profileDir, 'package.json')
+  const profileManifest = readJson(manifestPath)
+  const sourceManifest = readJson(join(sourceDir, 'package.json'))
+  if (sourceManifest.name !== packageName || sourceManifest.dsh?.bundle?.patch === undefined) {
+    throw new Error(`Bundled plugin ${packageName} is invalid`)
+  }
+  const normalized = normalizePluginSpec(spec)
+  let dependencySpecifier
+  let lockVersion
+  if (normalized.source === 'github') {
+    if (normalized.ref === undefined) throw new Error(`Bundled plugin ${packageName} must pin a GitHub revision`)
+    dependencySpecifier = spec
+    lockVersion = `https://codeload.github.com/${normalized.repository}/tar.gz/${normalized.ref}`
+  } else {
+    if (normalized.packageName !== packageName || normalized.spec !== `${packageName}@${sourceManifest.version}`) {
+      throw new Error(`Bundled plugin ${packageName} must pin its packaged npm version`)
+    }
+    dependencySpecifier = sourceManifest.version
+    lockVersion = sourceManifest.version
+  }
+
+  const targetPlugin = join(profileDir, 'node_modules', ...packageName.split('/'))
+  const declared = Object.hasOwn(profileManifest.dependencies ?? {}, packageName)
+  if (declared && existsSync(join(targetPlugin, 'package.json'))) {
+    const declaredSpec = profileManifest.dependencies[packageName]
+    const needsMigration = legacySpecs.has(declaredSpec)
+    const needsBundledRepair = declaredSpec === dependencySpecifier
+      && !bundledPluginFilesAvailable(targetPlugin, sourceManifest)
+    if (!needsMigration && !needsBundledRepair) return targetPlugin
+    await rm(targetPlugin, { recursive: true, force: true })
+  }
+  if (!existsSync(join(targetPlugin, 'package.json'))) {
+    for (const [name, directory] of bundledDependencyClosure(sourceDir)) {
+      const target = join(profileDir, 'node_modules', ...name.split('/'))
+      if (!existsSync(join(target, 'package.json'))) await cp(directory, target, { recursive: true, dereference: true })
+    }
+  }
+
+  profileManifest.dependencies = { ...profileManifest.dependencies, [packageName]: dependencySpecifier }
+  const bundles = Array.isArray(profileManifest.dsh?.profile?.bundles) ? profileManifest.dsh.profile.bundles : []
+  profileManifest.dsh = {
+    ...profileManifest.dsh,
+    profile: {
+      ...profileManifest.dsh?.profile,
+      bundles: bundles.includes(packageName) ? bundles : [...bundles, packageName],
+    },
+  }
+  writeJsonAtomic(manifestPath, profileManifest)
+
+  const lockPath = join(profileDir, 'pnpm-lock.yaml')
+  const lockfile = existsSync(lockPath) ? parse(readFileSync(lockPath, 'utf8')) : { lockfileVersion: '9.0', importers: {} }
+  lockfile.importers ??= {}
+  lockfile.importers['.'] ??= {}
+  lockfile.importers['.'].dependencies ??= {}
+  lockfile.importers['.'].dependencies[packageName] = {
+    specifier: dependencySpecifier,
+    version: lockVersion,
+  }
+  writeTextAtomic(lockPath, stringify(lockfile))
+  return targetPlugin
+}
+
+/** Seed the prebuilt remote plugin and its runtime dependency closure without network access. */
+export function installBundledRemotePlugin(options) {
+  return installBundledPlugin({
+    ...options,
+    packageName: 'dsh-remote',
+    spec: options.spec ?? BUNDLED_REMOTE_SPEC,
+    legacySpecs: LEGACY_BUNDLED_REMOTE_SPECS,
+  })
+}
+
+/** Seed the prebuilt file-viewer release and migrate superseded bundled sources. */
+export function installBundledFileViewerPlugin(options) {
+  return installBundledPlugin({
+    ...options,
+    packageName: 'dsh-file-viewer',
+    spec: options.spec ?? BUNDLED_FILE_VIEWER_SPEC,
+    legacySpecs: LEGACY_BUNDLED_FILE_VIEWER_SPECS,
+  })
+}
+
+function normalizeGitHubRef(value) {
+  if (value === undefined) return undefined
+  if (!GITHUB_REF_PATTERN.test(value) || value.includes('..') || value.includes('//') || value.endsWith('/')) {
+    throw new Error('Invalid GitHub revision')
+  }
+  return value
+}
+
+function normalizeGitHubPackagePath(value) {
+  if (
+    typeof value !== 'string'
+    || !GITHUB_PACKAGE_PATH_PATTERN.test(value)
+    || value.includes('..')
+    || value.includes('//')
+    || value.endsWith('/')
+  ) {
+    throw new Error('Invalid GitHub package path')
+  }
+  return value
+}
+
+function githubSelector(value) {
+  if (value === undefined || value === '') return {}
+  if (value.startsWith('path:')) return { path: normalizeGitHubPackagePath(value.slice('path:'.length)) }
+  const pathAt = value.indexOf('&path:')
+  if (pathAt === -1) return { ref: normalizeGitHubRef(value) }
+  return {
+    ref: normalizeGitHubRef(value.slice(0, pathAt)),
+    path: normalizeGitHubPackagePath(value.slice(pathAt + '&path:'.length)),
+  }
+}
+
+function normalizedGitHubSpec({ repository, ref, path }) {
+  const selector = ref === undefined
+    ? path === undefined ? '' : `path:${path}`
+    : `${ref}${path === undefined ? '' : `&path:${path}`}`
+  return `github:${repository}${selector === '' ? '' : `#${selector}`}`
+}
+
+function decodeGitHubUrlPart(value) {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    throw new Error('Use a GitHub repository, commit, or tree address')
+  }
+}
+
+function githubUrlSelector(segments, hash) {
+  const route = segments.slice(2)
+  if (route.length === 0) {
+    return githubSelector(hash === '' ? undefined : decodeGitHubUrlPart(hash.slice(1)))
+  }
+  if (route[0].toLowerCase() === 'commit' && route.length === 2 && /^[a-f0-9]{7,40}$/i.test(route[1])) {
+    return { ref: route[1] }
+  }
+  if (route[0].toLowerCase() === 'tree' && route.length >= 2) {
+    return { ref: normalizeGitHubRef(route.slice(1).join('/')) }
+  }
+  if (route[0].toLowerCase() === 'releases' && route[1]?.toLowerCase() === 'tag' && route.length >= 3) {
+    return { ref: normalizeGitHubRef(route.slice(2).join('/')) }
+  }
+  throw new Error('Use a GitHub repository, commit, or tree address')
+}
+
+function githubSource(spec) {
+  if (spec.toLowerCase().startsWith('github:')) {
+    const source = spec.slice('github:'.length)
+    const hashAt = source.indexOf('#')
+    const path = hashAt === -1 ? source : source.slice(0, hashAt)
+    const selector = githubSelector(hashAt === -1 ? undefined : source.slice(hashAt + 1))
+    const segments = path.split('/')
+    if (segments.length !== 2) throw new Error('Use a GitHub repository address')
+    const owner = segments[0]
+    const repository = segments[1].replace(/\.git$/i, '')
+    if (!GITHUB_OWNER_PATTERN.test(owner) || !GITHUB_REPOSITORY_PATTERN.test(repository)) {
+      throw new Error('Use a GitHub repository address')
+    }
+    return { owner, repository, ...selector }
+  }
+
+  if (!/^(?:git\+)?https:\/\/github\.com\//i.test(spec)) return undefined
+  let url
+  try {
+    url = new URL(spec.replace(/^git\+/i, ''))
+  } catch {
+    throw new Error('Use a GitHub repository address')
+  }
+  const segments = url.pathname.split('/').filter(Boolean).map(decodeGitHubUrlPart)
+  const owner = segments[0]
+  const repository = segments[1]?.replace(/\.git$/i, '')
+  if (
+    url.protocol !== 'https:'
+    || url.hostname.toLowerCase() !== 'github.com'
+    || url.port !== ''
+    || url.username !== ''
+    || url.password !== ''
+    || segments.length < 2
+    || !GITHUB_OWNER_PATTERN.test(owner ?? '')
+    || !GITHUB_REPOSITORY_PATTERN.test(repository ?? '')
+  ) {
+    throw new Error('Use a GitHub repository, commit, or tree address')
+  }
+  return { owner, repository, ...githubUrlSelector(segments, url.hash) }
+}
+
+export function normalizePluginSpec(value) {
+  if (typeof value !== 'string') throw new Error('Plugin package is required')
+  const spec = value.trim()
+  if (spec.length === 0) throw new Error('Plugin package is required')
+  if (spec.length > MAX_PLUGIN_SPEC_LENGTH) throw new Error('Plugin package is too long')
+  if (/\s|[\0\r\n]/.test(spec) || spec.startsWith('-')) throw new Error('Invalid plugin package')
+
+  const github = githubSource(spec)
+  if (github !== undefined) {
+    const { owner, repository, ref, path } = github
+    const qualifiedRepository = `${owner}/${repository}`
+    return {
+      spec: normalizedGitHubSpec({ repository: qualifiedRepository, ref, path }),
+      source: 'github',
+      repository: qualifiedRepository,
+      ...(ref === undefined ? {} : { ref }),
+      ...(path === undefined ? {} : { path }),
+    }
+  }
+
+  const slash = spec.startsWith('@') ? spec.indexOf('/') : -1
+  const selectorAt = spec.indexOf('@', slash + 1)
+  const packageName = selectorAt === -1 ? spec : spec.slice(0, selectorAt)
+  const selector = selectorAt === -1 ? undefined : spec.slice(selectorAt + 1)
+  if (!PACKAGE_NAME_PATTERN.test(packageName) || (selector !== undefined && !PACKAGE_SELECTOR_PATTERN.test(selector))) {
+    throw new Error('Use an npm package name with an optional version')
+  }
+  if (SYSTEM_BUNDLES.has(packageName)) throw new Error('System bundles are managed by DeepSeek Harness Desktop')
+  return { spec, packageName, source: 'npm' }
+}
+
+export function readPluginCatalog({ dshHome, profile = PLUGIN_PROFILE }) {
+  const profileDir = profileDirectory(dshHome, profile)
+  const manifestPath = join(profileDir, 'package.json')
+  if (!existsSync(manifestPath)) {
+    return { profile, profileDir, plugins: [], system: [], initialized: false }
+  }
+
+  const manifest = readJson(manifestPath)
+  const dependencies = manifest.dependencies ?? {}
+  const bundles = Array.isArray(manifest.dsh?.profile?.bundles) ? manifest.dsh.profile.bundles : []
+  const installedAt = readPluginInstallHistory(profileDir)
+  const dependencyNames = new Set(Object.keys(dependencies).filter(name => !SYSTEM_BUNDLES.has(name)))
+  const plugins = Object.entries(dependencies).filter(([name]) => !SYSTEM_BUNDLES.has(name)).map(([name, requested]) =>
+    pluginMetadata(profileDir, name, typeof requested === 'string' ? requested : '', bundles.includes(name), installedAt[name]),
+  )
+  const system = bundles.filter(name => SYSTEM_BUNDLES.has(name) || !dependencyNames.has(name)).map(name => ({ name, enabled: true }))
+  return { profile, profileDir, plugins, system, initialized: true }
+}
+
+export function setPluginEnabled({ dshHome, name, enabled, profile = PLUGIN_PROFILE }) {
+  if (!PACKAGE_NAME_PATTERN.test(name)) throw new Error('Invalid plugin package name')
+  if (SYSTEM_BUNDLES.has(name)) throw new Error('System bundles cannot be changed')
+  const profileDir = profileDirectory(dshHome, profile)
+  const manifestPath = join(profileDir, 'package.json')
+  const manifest = readJson(manifestPath)
+  if (!Object.hasOwn(manifest.dependencies ?? {}, name)) throw new Error('Plugin is not installed')
+  const plugin = pluginMetadata(profileDir, name, manifest.dependencies[name], false)
+  if (!plugin.installed) throw new Error('Plugin files are missing')
+  if (!plugin.bundle) throw new Error('Package does not declare a DSH bundle')
+
+  const bundles = Array.isArray(manifest.dsh?.profile?.bundles) ? [...manifest.dsh.profile.bundles] : []
+  const nextBundles = enabled
+    ? bundles.includes(name) ? bundles : [...bundles, name]
+    : bundles.filter(candidate => candidate !== name)
+  manifest.dsh = {
+    ...manifest.dsh,
+    profile: { ...manifest.dsh?.profile, bundles: nextBundles },
+  }
+  writeJsonAtomic(manifestPath, manifest)
+}
+
+/** Async owner used by IPC callers for the synchronous enable/disable mutation. */
+export function setPluginEnabledExclusive(options) {
+  return withProfileWriteLock(options, () => {
+    setPluginEnabled(options)
+    return readPluginCatalog(options)
+  })
+}
+
+export function forgetPluginBundle({ dshHome, name, profile = PLUGIN_PROFILE }) {
+  if (!PACKAGE_NAME_PATTERN.test(name)) throw new Error('Invalid plugin package name')
+  if (SYSTEM_BUNDLES.has(name)) throw new Error('System bundles cannot be removed')
+  const manifestPath = join(profileDirectory(dshHome, profile), 'package.json')
+  const manifest = readJson(manifestPath)
+  const bundles = Array.isArray(manifest.dsh?.profile?.bundles) ? manifest.dsh.profile.bundles : []
+  manifest.dsh = {
+    ...manifest.dsh,
+    profile: { ...manifest.dsh?.profile, bundles: bundles.filter(candidate => candidate !== name) },
+  }
+  writeJsonAtomic(manifestPath, manifest)
+}
+
+export function runPnpm({
+  args,
+  env = process.env,
+  execPath = process.execPath,
+  pnpmEntry,
+  hiddenChildProcess,
+  profileDir,
+  signal,
+  spawnImpl,
+  processKill,
+  signalImpl,
+  platform = process.platform,
+  taskkillPath,
+  terminationTimeoutMs = 250,
+  shutdownTimeoutMs,
+  timeoutMs = 0,
+  timeout,
+  onOutput = () => {},
+}) {
+  if (!Array.isArray(args) || args.some(argument => typeof argument !== 'string')) {
+    return Promise.reject(new Error('Invalid pnpm arguments'))
+  }
+  return runOwnedCommand({
+    command: execPath,
+    // pnpm can start lifecycle scripts of its own. Loading the same policy in
+    // that process keeps those grandchildren from opening console windows.
+    args: [...nodePreloadArguments(hiddenChildProcess), pnpmEntry, ...args],
+    cwd: profileDir,
+    env: {
+      ...env,
+      ELECTRON_RUN_AS_NODE: '1',
+      FORCE_COLOR: '0',
+      NO_COLOR: '1',
+    },
+    signal,
+    spawnImpl,
+    processKill,
+    signalImpl,
+    platform,
+    taskkillPath,
+    terminationTimeoutMs: shutdownTimeoutMs ?? terminationTimeoutMs,
+    timeoutMs: timeout ?? timeoutMs,
+    outputLabel: 'pnpm',
+    onOutput,
+    errorForExit: (code, exitSignal) => `pnpm exited with code ${String(code)} and signal ${String(exitSignal)}`,
+  })
+}
+
+export function runGit({
+  args,
+  cwd,
+  env = process.env,
+  signal,
+  spawnImpl,
+  processKill,
+  signalImpl,
+  platform = process.platform,
+  taskkillPath,
+  terminationTimeoutMs = 250,
+  shutdownTimeoutMs,
+  timeoutMs = 0,
+  timeout,
+  onOutput = () => {},
+}) {
+  if (!Array.isArray(args) || args.some(argument => typeof argument !== 'string')) {
+    return Promise.reject(new Error('Invalid git arguments'))
+  }
+  return runOwnedCommand({
+    command: 'git',
+    args,
+    cwd,
+    env: {
+      ...env,
+      GIT_TERMINAL_PROMPT: '0',
+      GCM_INTERACTIVE: 'Never',
+    },
+    signal,
+    spawnImpl,
+    processKill,
+    signalImpl,
+    platform,
+    taskkillPath,
+    terminationTimeoutMs: shutdownTimeoutMs ?? terminationTimeoutMs,
+    timeoutMs: timeout ?? timeoutMs,
+    outputLabel: 'git',
+    onOutput,
+    errorForSpawn: error => error?.code === 'ENOENT'
+      ? new Error('Git is required to install or update GitHub plugins')
+      : error,
+    errorForExit: (code, exitSignal) => `git exited with code ${String(code)} and signal ${String(exitSignal)}`,
+  })
+}
+
+function githubRemote(normalized) {
+  return `https://github.com/${normalized.repository}.git`
+}
+
+async function resolveLatestGitHubRevision({ normalized, cwd, env, onOutput, signal, runGitImpl }) {
+  const result = await runGitImpl({
+    args: ['ls-remote', '--tags', '--refs', '--sort=-version:refname', githubRemote(normalized)],
+    cwd,
+    env,
+    onOutput,
+    signal,
+  })
+  for (const line of result.output.split(/\r?\n/)) {
+    const match = /^[a-f0-9]{40}\s+refs\/tags\/(.+)$/i.exec(line)
+    if (match === null) continue
+    const ref = normalizeGitHubRef(match[1])
+    return { ...normalized, ref, spec: normalizedGitHubSpec({ ...normalized, ref }) }
+  }
+  const ref = await resolveGitHubDefaultCommit({ normalized, cwd, env, onOutput, signal, runGitImpl })
+  return { ...normalized, ref, spec: normalizedGitHubSpec({ ...normalized, ref }) }
+}
+
+async function resolveGitHubDefaultCommit({ normalized, cwd, env, onOutput, signal, runGitImpl }) {
+  const result = await runGitImpl({
+    args: ['ls-remote', '--symref', githubRemote(normalized), 'HEAD'],
+    cwd,
+    env,
+    onOutput,
+    signal,
+  })
+  for (const line of result.output.split(/\r?\n/)) {
+    const match = /^([a-f0-9]{40})\s+HEAD$/i.exec(line)
+    if (match !== null) return match[1].toLowerCase()
+  }
+  throw new Error('Could not resolve the GitHub repository default branch')
+}
+
+function findInstalledPlugin(catalog, previous, normalized) {
+  if (normalized.source === 'npm') {
+    return catalog.plugins.find(candidate => candidate.name === normalized.packageName)
+  }
+  const repositoryMatches = catalog.plugins.filter(candidate => pluginUsesGitHubSource(candidate, normalized))
+  if (repositoryMatches.length === 1) return repositoryMatches[0]
+  const changed = catalog.plugins.filter(candidate => previous.get(candidate.name) !== candidate.requested)
+  return changed.length === 1 ? changed[0] : undefined
+}
+
+function pluginUsesGitHubSource(plugin, normalized) {
+  try {
+    const source = normalizePluginSpec(plugin.requested)
+    return source.source === 'github'
+      && source.repository.toLowerCase() === normalized.repository.toLowerCase()
+      && source.path === normalized.path
+  } catch {
+    return false
+  }
+}
+
+function githubBuildKey(packageName, normalized) {
+  return `${packageName}@git+https://github.com/${normalized.repository}.git`
+}
+
+function githubBuildAllowed(profileDir, plugin, normalized) {
+  const workspacePath = join(profileDir, 'pnpm-workspace.yaml')
+  if (!existsSync(workspacePath)) return false
+  const workspace = parse(readFileSync(workspacePath, 'utf8'))
+  if (typeof workspace !== 'object' || workspace === null || Array.isArray(workspace)) return false
+  if (typeof workspace.allowBuilds !== 'object' || workspace.allowBuilds === null || Array.isArray(workspace.allowBuilds)) return false
+  return workspace.allowBuilds[githubBuildKey(plugin.name, normalized)] === true
+}
+
+function resolvedGitHubCommit(profileDir, packageName) {
+  const lockPath = join(profileDir, 'pnpm-lock.yaml')
+  if (!existsSync(lockPath)) return undefined
+  const lockfile = parse(readFileSync(lockPath, 'utf8'))
+  const dependency = lockfile?.importers?.['.']?.dependencies?.[packageName]
+  const resolution = typeof dependency === 'string' ? dependency : dependency?.version
+  if (typeof resolution !== 'string') return undefined
+  return /(?:\/tar\.gz\/|#)([a-f0-9]{40})(?:$|[?&(])/i.exec(resolution)?.[1]
+}
+
+function forgetGitHubBuildPermission(profileDir, plugin) {
+  if (plugin.source !== 'github') return
+  let normalized
+  try {
+    normalized = normalizePluginSpec(plugin.requested)
+  } catch {
+    return
+  }
+  if (normalized.source !== 'github') return
+  const workspacePath = join(profileDir, 'pnpm-workspace.yaml')
+  if (!existsSync(workspacePath)) return
+  const workspace = parse(readFileSync(workspacePath, 'utf8'))
+  if (typeof workspace !== 'object' || workspace === null || Array.isArray(workspace)) return
+  if (typeof workspace.allowBuilds !== 'object' || workspace.allowBuilds === null || Array.isArray(workspace.allowBuilds)) return
+  const key = githubBuildKey(plugin.name, normalized)
+  if (workspace.allowBuilds[key] !== true) return
+  delete workspace.allowBuilds[key]
+  writeTextAtomic(workspacePath, stringify(workspace))
+}
+
+export function installPlugin(options) {
+  return withProfileWriteLock(options, () => installPluginUnlocked(options))
+}
+
+async function installPluginUnlocked({
+  dshHome,
+  pnpmEntry,
+  spec,
+  allowBuildScripts = false,
+  execPath,
+  env,
+  onOutput,
+  signal,
+  profile = PLUGIN_PROFILE,
+  runGitImpl = runGit,
+  runPnpmImpl = runPnpm,
+}) {
+  if (typeof allowBuildScripts !== 'boolean') throw new Error('Invalid build-script permission')
+  let normalized = normalizePluginSpec(spec)
+  const profileDir = profileDirectory(dshHome, profile)
+  if (normalized.source === 'github' && normalized.ref === undefined) {
+    normalized = await resolveLatestGitHubRevision({ normalized, cwd: profileDir, env, onOutput, signal, runGitImpl })
+  }
+  const before = readPluginCatalog({ dshHome, profile })
+  const previous = new Map(before.plugins.map(plugin => [plugin.name, plugin.requested]))
+  const firstInstall = await runPnpmImpl({
+    args: [
+      'add',
+      '--workspace-root',
+      '--save-prod',
+      '--reporter',
+      'append-only',
+      ...(normalized.source === 'github' ? ['--ignore-scripts'] : []),
+      normalized.spec,
+    ],
+    env,
+    execPath,
+    onOutput,
+    pnpmEntry,
+    profileDir,
+    signal,
+  })
+  const buildScriptsIgnored = normalized.source === 'github' && /(?:GIT_DEP_PREPARE_NOT_ALLOWED|IGNORED_BUILDS|build scripts were ignored)/i.test(firstInstall.output)
+  let catalog = readPluginCatalog({ dshHome, profile })
+  let plugin = findInstalledPlugin(catalog, previous, normalized)
+  if (normalized.source === 'github' && plugin === undefined) {
+    throw new Error('Installed the GitHub repository but could not identify its package name')
+  }
+  if (normalized.source === 'github' && plugin !== undefined) {
+    const installedName = plugin.name
+    const commit = resolvedGitHubCommit(profileDir, plugin.name)
+    if (commit === undefined) throw new Error('Installed the GitHub repository but could not pin its resolved commit')
+    const pinnedSpec = normalizedGitHubSpec({ ...normalized, ref: commit })
+    const buildArguments = allowBuildScripts ? [`--allow-build=${githubBuildKey(plugin.name, normalized)}`] : ['--ignore-scripts']
+    await runPnpmImpl({
+      args: ['add', '--workspace-root', '--save-prod', '--reporter', 'append-only', ...buildArguments, pinnedSpec],
+      env,
+      execPath,
+      onOutput,
+      pnpmEntry,
+      profileDir,
+      signal,
+    })
+    catalog = readPluginCatalog({ dshHome, profile })
+    plugin = catalog.plugins.find(candidate => candidate.name === installedName)
+    if (plugin === undefined) throw new Error('Pinned the GitHub repository but its package is no longer installed')
+    const superseded = catalog.plugins.filter(candidate =>
+      candidate.name !== installedName
+      && previous.has(candidate.name)
+      && pluginUsesGitHubSource(candidate, normalized),
+    )
+    if (superseded.length > 0) {
+      await runPnpmImpl({
+        args: ['remove', '--reporter', 'append-only', ...superseded.map(candidate => candidate.name)],
+        env,
+        execPath,
+        onOutput,
+        pnpmEntry,
+        profileDir,
+        signal,
+      })
+      for (const candidate of superseded) {
+        forgetGitHubBuildPermission(profileDir, candidate)
+        forgetPluginBundle({ dshHome, name: candidate.name, profile })
+        forgetPluginInstallHistory(profileDir, candidate.name)
+      }
+      catalog = readPluginCatalog({ dshHome, profile })
+      plugin = catalog.plugins.find(candidate => candidate.name === installedName)
+      if (plugin === undefined) throw new Error('Removed the superseded plugin but the replacement is missing')
+    }
+  }
+  const requiredBuildScriptsIgnored = buildScriptsIgnored && plugin !== undefined
+    && installedPluginRequiresBuild(profileDir, plugin.name)
+  if (plugin?.bundle) {
+    setPluginEnabled({
+      dshHome,
+      name: plugin.name,
+      enabled: !requiredBuildScriptsIgnored || allowBuildScripts,
+      profile,
+    })
+  }
+  if (plugin !== undefined && !previous.has(plugin.name)) recordPluginInstalled(profileDir, plugin.name)
+  return {
+    ...readPluginCatalog({ dshHome, profile }),
+    buildScriptsIgnored: requiredBuildScriptsIgnored && !allowBuildScripts,
+  }
+}
+
+export function updatePlugin(options) {
+  return withProfileWriteLock(options, () => updatePluginUnlocked(options))
+}
+
+async function updatePluginUnlocked({
+  dshHome,
+  pnpmEntry,
+  name,
+  execPath,
+  env,
+  onOutput,
+  signal,
+  profile = PLUGIN_PROFILE,
+  runGitImpl = runGit,
+  runPnpmImpl = runPnpm,
+}) {
+  if (!PACKAGE_NAME_PATTERN.test(name)) throw new Error('Invalid plugin package name')
+  if (SYSTEM_BUNDLES.has(name)) throw new Error('System bundles cannot be updated')
+  const before = readPluginCatalog({ dshHome, profile })
+  const plugin = before.plugins.find(candidate => candidate.name === name)
+  if (plugin === undefined) throw new Error('Plugin is not installed')
+  const normalized = normalizePluginSpec(plugin.requested)
+  if (normalized.source !== 'github') throw new Error('Only GitHub plugins support online updates')
+  const commit = await resolveGitHubDefaultCommit({
+    normalized,
+    cwd: before.profileDir,
+    env,
+    onOutput,
+    signal,
+    runGitImpl,
+  })
+  if (normalized.ref?.toLowerCase() === commit) return { ...before, upToDate: true }
+
+  const wasEnabled = plugin.enabled
+  const result = await installPluginUnlocked({
+    dshHome,
+    pnpmEntry,
+    spec: normalizedGitHubSpec({ ...normalized, ref: commit }),
+    allowBuildScripts: githubBuildAllowed(before.profileDir, plugin, normalized),
+    execPath,
+    env,
+    onOutput,
+    signal,
+    profile,
+    runGitImpl,
+    runPnpmImpl,
+  })
+  let catalog = readPluginCatalog({ dshHome, profile })
+  const updated = catalog.plugins.find(candidate => pluginUsesGitHubSource(candidate, normalized))
+  if (!wasEnabled && updated?.bundle && updated.enabled) {
+    setPluginEnabled({ dshHome, name: updated.name, enabled: false, profile })
+    catalog = readPluginCatalog({ dshHome, profile })
+  }
+  return {
+    ...catalog,
+    buildScriptsIgnored: result.buildScriptsIgnored,
+    upToDate: false,
+  }
+}
+
+export function removePlugin(options) {
+  return withProfileWriteLock(options, () => removePluginUnlocked(options))
+}
+
+async function removePluginUnlocked({
+  dshHome,
+  pnpmEntry,
+  name,
+  execPath,
+  env,
+  onOutput,
+  signal,
+  profile = PLUGIN_PROFILE,
+  runPnpmImpl = runPnpm,
+}) {
+  if (!PACKAGE_NAME_PATTERN.test(name)) throw new Error('Invalid plugin package name')
+  if (SYSTEM_BUNDLES.has(name)) throw new Error('System bundles cannot be removed')
+  const catalog = readPluginCatalog({ dshHome, profile })
+  const plugin = catalog.plugins.find(candidate => candidate.name === name)
+  if (plugin === undefined) throw new Error('Plugin is not installed')
+  await runPnpmImpl({
+    args: ['remove', '--reporter', 'append-only', name],
+    env,
+    execPath,
+    onOutput,
+    pnpmEntry,
+    profileDir: catalog.profileDir,
+    signal,
+  })
+  forgetGitHubBuildPermission(catalog.profileDir, plugin)
+  forgetPluginBundle({ dshHome, name, profile })
+  forgetPluginInstallHistory(catalog.profileDir, name)
+  return readPluginCatalog({ dshHome, profile })
+}
+
+/**
+ * Keep the legacy API stable while leaving a new profile clean. Users install
+ * optional plugins explicitly through the plugin manager.
+ */
+export function ensureDefaultPlugins(options) {
+  return withProfileWriteLock(options, () => ensureDefaultPluginsUnlocked(options))
+}
+
+async function ensureDefaultPluginsUnlocked({ dshHome, profile = PLUGIN_PROFILE }) {
+  const profileDir = ensureProfileInitialized(dshHome, profile)
+  return { ...readPluginCatalog({ dshHome, profile }), installed: [], defaults: [] }
+}

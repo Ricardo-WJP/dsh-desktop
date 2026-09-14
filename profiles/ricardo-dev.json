@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "mode": "dev",
+  "logicalName": "ricardo-dev",
+  "sourceEvidence": "profiles/evidence/web-2026-08-22",
+  "compatibility": "compatibility/plugins.json"
+}

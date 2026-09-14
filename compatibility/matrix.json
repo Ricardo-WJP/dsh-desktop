@@ -1,0 +1,1592 @@
+{
+  "schemaVersion": 1,
+  "matrixVersion": "task-10-static-gate-v1",
+  "evidenceCapturedAt": "2026-08-22T13:33:21.733Z",
+  "sourceEvidence": [
+    "compatibility/plugins.json",
+    "profiles/evidence/web-2026-08-22/package.json",
+    "profiles/evidence/web-2026-08-22/pnpm-lock.yaml",
+    "profiles/evidence/web-2026-08-22/cordis.yml",
+    "profiles/evidence/web-2026-08-22/cordis.patch.yml",
+    "profiles/packages/*",
+    "package-lock.json"
+  ],
+  "evidencePolicy": {
+    "moduleImportIsNotEvidence": true,
+    "passedRequiresStaticEvidence": true,
+    "liveNodeModulesAreReadOnly": true,
+    "task11GuiAndRealActionsRemainPending": true
+  },
+  "pluginOrder": [
+    "@dsh-external/dsh-task-status",
+    "@dsh-external/dsh-visualize",
+    "@linxin666/dsh-client-ui-activity-heatmap",
+    "@liustack/modlens",
+    "@nanmicoder/dsh-agent-teams",
+    "@omdsh-dev/dsh-annotation",
+    "aegis",
+    "dsh-better-sidebar",
+    "dsh-codex-connect",
+    "dsh-design-skills",
+    "dsh-expression",
+    "dsh-health-tool",
+    "dsh-mnemon",
+    "dsh-notification",
+    "dsh-restart-tool",
+    "dsh-skill-manager-ytxue",
+    "dsh-update-button",
+    "dsh-usage-stats",
+    "dshmarket"
+  ],
+  "order": [
+    "@deepseek-ai/dsh-base",
+    "@deepseek-ai/dsh-web-app",
+    "@dsh-external/dsh-task-status",
+    "@dsh-external/dsh-visualize",
+    "@linxin666/dsh-client-ui-activity-heatmap",
+    "@liustack/modlens",
+    "@nanmicoder/dsh-agent-teams",
+    "@omdsh-dev/dsh-annotation",
+    "aegis",
+    "dsh-better-sidebar",
+    "dsh-codex-connect",
+    "dsh-design-skills",
+    "dsh-expression",
+    "dsh-health-tool",
+    "dsh-mnemon",
+    "dsh-notification",
+    "dsh-restart-tool",
+    "dsh-skill-manager-ytxue",
+    "dsh-update-button",
+    "dsh-usage-stats",
+    "dshmarket"
+  ],
+  "rows": [
+    {
+      "name": "@deepseek-ai/dsh-base",
+      "kind": "base-bundle",
+      "status": "pending",
+      "source": {
+        "kind": "npm",
+        "requested": "^0.1.1-rc.2 (dependency of @deepseek-ai/dsh)",
+        "resolved": "https://registry.npmjs.org/@deepseek-ai/dsh-base/-/dsh-base-0.1.1-rc.2.tgz",
+        "version": "0.1.1-rc.2",
+        "commit": "not-applicable",
+        "integrity": "sha512-DT1kSaseoTZ0b8pwZ5biRkqez2K8AnsLataRiCPsn3uUuxupZOjM1e8x9W+kpkWWFykWy1mbCPhzDRVJ+pLCbg==",
+        "status": "passed",
+        "evidence": [
+          {
+            "kind": "npm-lock",
+            "path": "package-lock.json",
+            "contains": "@deepseek-ai/dsh-base/-/dsh-base-0.1.1-rc.2.tgz"
+          },
+          {
+            "kind": "bundle-manifest",
+            "path": "node_modules/@deepseek-ai/dsh-base/package.json",
+            "contains": "packages/bundle/base"
+          }
+        ],
+        "issues": []
+      },
+      "loaderId": "@deepseek-ai/dsh-base",
+      "clientLoaderId": "none",
+      "clientInjectDependencies": [],
+      "hostActivationAssertion": {
+        "status": "passed",
+        "assertion": "The official base bundle patch inserts the shared Host rows over the empty profile root.",
+        "evidence": [
+          {
+            "kind": "cordis-patch",
+            "path": "node_modules/@deepseek-ai/dsh-base/cordis.patch.yml",
+            "contains": "id: timer"
+          },
+          {
+            "kind": "cordis-patch",
+            "path": "node_modules/@deepseek-ai/dsh-base/cordis.patch.yml",
+            "contains": "name: '@deepseek-ai/cordis-plugin-timer'"
+          }
+        ]
+      },
+      "clientSlotAssertion": {
+        "status": "passed",
+        "mode": "none",
+        "slot": "none",
+        "keyPolicy": "Base is a Host bundle; browser slots are supplied by dsh-web-app and its client bundles.",
+        "evidence": [
+          {
+            "kind": "bundle-manifest",
+            "path": "node_modules/@deepseek-ai/dsh-base/package.json",
+            "absent": "dsh.client"
+          },
+          {
+            "kind": "cordis-patch",
+            "path": "node_modules/@deepseek-ai/dsh-base/cordis.patch.yml",
+            "contains": "dsh-base bundle patch"
+          }
+        ]
+      },
+      "userAction": {
+        "status": "pending",
+        "action": "启动候选 Web Host 并打开一个新会话。",
+        "task": "Task 11 GUI/真实动作 gate"
+      },
+      "routeRpcStorageEffect": {
+        "routes": [
+          "/api/*",
+          "Host-owned plugin routes"
+        ],
+        "rpc": [
+          "DSH client connection/API gateway"
+        ],
+        "storage": [
+          "$DSH_HOME/sessions/**",
+          "$DSH_HOME/settings.yaml",
+          "$DSH_HOME/storages/**"
+        ]
+      },
+      "crossVersionNotes": "Official 0.1.1-rc.2 base; keep paired with the exact dsh-web-app bundle and the same DSH runtime.",
+      "patchOwner": "upstream @deepseek-ai/dsh-base bundle",
+      "evidenceCapturedAt": "2026-08-22T13:33:21.733Z"
+    },
+    {
+      "name": "@deepseek-ai/dsh-web-app",
+      "kind": "base-bundle",
+      "status": "pending",
+      "source": {
+        "kind": "npm",
+        "requested": "^0.1.1-rc.2 (dependency of @deepseek-ai/dsh)",
+        "resolved": "https://registry.npmjs.org/@deepseek-ai/dsh-web-app/-/dsh-web-app-0.1.1-rc.2.tgz",
+        "version": "0.1.1-rc.2",
+        "commit": "not-applicable",
+        "integrity": "sha512-1zGHY7qwBVlVJrzIWu+86SuBZXaVUxe2JRfffsuRvKXq2QcR/K4CoJJfZ43cDoWKu9xPvvxz7w2ezV+EdXgg1A==",
+        "status": "passed",
+        "evidence": [
+          {
+            "kind": "npm-lock",
+            "path": "package-lock.json",
+            "contains": "@deepseek-ai/dsh-web-app/-/dsh-web-app-0.1.1-rc.2.tgz"
+          },
+          {
+            "kind": "bundle-manifest",
+            "path": "node_modules/@deepseek-ai/dsh-web-app/package.json",
+            "contains": "packages/bundle/web-app"
+          }
+        ],
+        "issues": []
+      },
+      "loaderId": "@deepseek-ai/dsh-web-app",
+      "clientLoaderId": "none",
+      "clientInjectDependencies": [],
+      "hostActivationAssertion": {
+        "status": "passed",
+        "assertion": "The web-app patch provides the Web runtime, webserver, client module registry and official UI rows.",
+        "evidence": [
+          {
+            "kind": "cordis-patch",
+            "path": "node_modules/@deepseek-ai/dsh-web-app/cordis.patch.yml",
+            "contains": "id: web-runtime"
+          },
+          {
+            "kind": "cordis-patch",
+            "path": "node_modules/@deepseek-ai/dsh-web-app/cordis.patch.yml",
+            "contains": "id: modules"
+          }
+        ]
+      },
+      "clientSlotAssertion": {
+        "status": "passed",
+        "mode": "system-client-surface",
+        "slot": "system UI slots declared by ui-sidebar/ui-settings/ui-conversation",
+        "keyPolicy": "This bundle does not register an out-of-tree client plugin entry itself.",
+        "evidence": [
+          {
+            "kind": "bundle-manifest",
+            "path": "node_modules/@deepseek-ai/dsh-web-app/package.json",
+            "absent": "dsh.client"
+          },
+          {
+            "kind": "cordis-patch",
+            "path": "node_modules/@deepseek-ai/dsh-web-app/cordis.patch.yml",
+            "contains": "id: ui-sidebar"
+          }
+        ]
+      },
+      "userAction": {
+        "status": "pending",
+        "action": "打开 Web GUI、设置页和一个会话，确认静态资源与 API 都可用。",
+        "task": "Task 11 GUI/真实动作 gate"
+      },
+      "routeRpcStorageEffect": {
+        "routes": [
+          "/",
+          "/plugins/<id>/client.js",
+          "/api/*"
+        ],
+        "rpc": [
+          "browser module bootstrap",
+          "client connection/SSE"
+        ],
+        "storage": [
+          "Web UI reads the paired $DSH_HOME profile; no bundle-local write"
+        ]
+      },
+      "crossVersionNotes": "Official 0.1.1-rc.2 Web surface; its client slot contracts must be tested against the paired runtime, not an independently upgraded GUI.",
+      "patchOwner": "upstream @deepseek-ai/dsh-web-app bundle",
+      "evidenceCapturedAt": "2026-08-22T13:33:21.733Z"
+    },
+    {
+      "name": "@dsh-external/dsh-task-status",
+      "kind": "plugin",
+      "status": "pending",
+      "source": {
+        "kind": "github",
+        "requested": "github:vlln/dsh-task-status#main",
+        "resolved": "https://codeload.github.com/vlln/dsh-task-status/tar.gz/4453da02d62289aeb19b046b4d2b5439dd4ce55a",
+        "version": "0.3.0",
+        "commit": "4453da02d62289aeb19b046b4d2b5439dd4ce55a",
+        "integrity": "sha512-IpygeajhMrQFFw8sd5Tlhdb+KWK6s9NiCNzLutBOnZFF4bfNYS8o2rxRPiD3w6Icbc9k+d5VRYGlWPlGa2GMPA==",
+        "status": "passed",
+        "evidence": [
+          {
+            "kind": "profile-lock",
+            "path": "profiles/evidence/web-2026-08-22/pnpm-lock.yaml",
+            "contains": "4453da02d62289aeb19b046b4d2b5439dd4ce55a"
+          }
+        ],
+        "issues": []
+      },
+      "loaderId": "task-status",
+      "clientLoaderId": "@dsh-external/dsh-task-status",
+      "clientInjectDependencies": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-slots"
+      ],
+      "hostActivationAssertion": {
+        "status": "pending",
+        "assertion": "Cordis inserts only the @dsh-external task-status package under loader row task-status.",
+        "evidence": []
+      },
+      "clientSlotAssertion": {
+        "status": "pending",
+        "slot": "conversation.input.dock",
+        "keyPolicy": "List slot; registration uses id task-status and does not require a keyed option.",
+        "evidence": []
+      },
+      "userAction": {
+        "status": "pending",
+        "action": "在会话输入区打开任务状态并刷新一个任务输出。",
+        "task": "Task 11 GUI/真实 action"
+      },
+      "routeRpcStorageEffect": {
+        "routes": [
+          "GET /plugins/dsh-task-status/tasks",
+          "GET /plugins/dsh-task-status/output?id=<task>"
+        ],
+        "rpc": [
+          "jobs.read",
+          "jobs/output read-only projection"
+        ],
+        "storage": [
+          "reads Host job registry; no plugin-owned write"
+        ]
+      },
+      "crossVersionNotes": "Client artifact declares rc.6-era client peers; static graph is recorded, but GUI/action compatibility remains pending on rc.2.",
+      "patchOwner": "upstream package; no local identity fork",
+      "evidenceCapturedAt": "2026-08-22T13:33:21.733Z"
+    },
+    {
+      "name": "@dsh-external/dsh-visualize",
+      "kind": "plugin",
+      "status": "pending",
+      "source": {
+        "kind": "github",
+        "requested": "github:Nagi-ovo/dsh-visualize",
+        "resolved": "https://codeload.github.com/Nagi-ovo/dsh-visualize/tar.gz/dd41b388db67f146c928772c6242c0acdb5bbeae",
+        "version": "0.1.2",
+        "commit": "dd41b388db67f146c928772c6242c0acdb5bbeae",
+        "integrity": "sha512-SmG1JJYebojmfpIH1Q42H6niSFjNecmcsqkK+5lD8FSXQhRsaah37DQKTuLwx/cjtmzsrT4W802EsB32/mNV8g==",
+        "status": "passed",
+        "evidence": [
+          {
+            "kind": "profile-lock",
+            "path": "profiles/evidence/web-2026-08-22/pnpm-lock.yaml",
+            "contains": "dd41b388db67f146c928772c6242c0acdb5bbeae"
+          }
+        ],
+        "issues": []
+      },
+      "loaderId": "dsh-visualize",
+      "clientLoaderId": "@dsh-external/dsh-visualize",
+      "clientInjectDependencies": [
+        "@deepseek-ai/dsh-client-runtime"
+      ],
+      "hostActivationAssertion": {
+        "status": "pending",
+        "assertion": "Cordis inserts row dsh-visualize with the external package identity.",
+        "evidence": []
+      },
+      "clientSlotAssertion": {
+        "status": "pending",
+        "slot": "tool.call.toolview; conversation.input.dock",
+        "key": "visualize",
+        "keyPolicy": "tool.call.toolview is keyed as visualize; the streaming dock is id-based.",
+        "evidence": []
+      },
+      "userAction": {
+        "status": "pending",
+        "action": "调用 visualize 创建一张最小可视化卡片并确认消息内渲染。",
+        "task": "Task 11 GUI/真实 action"
+      },
+      "routeRpcStorageEffect": {
+        "routes": [],
+        "rpc": [
+          "tool call: visualize"
+        ],
+        "storage": [
+          "workspace artifact written through DSH fs and returned as a toolview"
+        ]
+      },
+      "crossVersionNotes": "Published bundle peers target rc.6; keep the toolview key and input dock contracts pinned while validating against rc.2.",
+      "patchOwner": "upstream package; no local patch",
+      "evidenceCapturedAt": "2026-08-22T13:33:21.733Z"
+    },
+    {
+      "name": "@linxin666/dsh-client-ui-activity-heatmap",
+      "kind": "plugin",
+      "status": "pending",
+      "source": {
+        "kind": "github",
+        "requested": "github:283Gawin/dsh-heatmap",
+        "resolved": "https://codeload.github.com/283Gawin/dsh-heatmap/tar.gz/4ba131df0980c8c8af72901ca9fa0f31accb9a6d",
+        "version": "0.1.0",
+        "commit": "4ba131df0980c8c8af72901ca9fa0f31accb9a6d",
+        "integrity": "sha512-2KjpHr/KSfVa601dXf8TAHZhHgHFfHrHNhlpecJbwIPilQwY5igHnabVMSBeEJpurFS+szHbwrGXD3ZP5IM7eQ==",
+        "status": "passed",
+        "evidence": [
+          {
+            "kind": "profile-lock",
+            "path": "profiles/evidence/web-2026-08-22/pnpm-lock.yaml",
+            "contains": "4ba131df0980c8c8af72901ca9fa0f31accb9a6d"
+          }
+        ],
+        "issues": []
+      },
+      "loaderId": "ui-activity-heatmap",
+      "clientLoaderId": "@linxin666/dsh-client-ui-activity-heatmap",
+      "clientInjectDependencies": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-settings"
+      ],
+      "hostActivationAssertion": {
+        "status": "pending",
+        "assertion": "Cordis inserts ui-activity-heatmap with the @linxin666 package identity.",
+        "evidence": []
+      },
+      "clientSlotAssertion": {
+        "status": "pending",
+        "slot": "settings.plugin.item",
+        "key": "activity-heatmap",
+        "keyPolicy": "Keyed settings.plugin.item; the registration must keep key activity-heatmap.",
+        "evidence": []
+      },
+      "userAction": {
+        "status": "pending",
+        "action": "打开设置中的活动热力图，切换 90 天/今日 Token 统计。",
+        "task": "Task 11 GUI/真实 action"
+      },
+      "routeRpcStorageEffect": {
+        "routes": [
+          "GET /activity-heatmap/stats"
+        ],
+        "rpc": [
+          "settingsScope activity-heatmap read/write"
+        ],
+        "storage": [
+          "Host session/git usage read",
+          "browser localStorage for heatmap view/collapse preferences"
+        ]
+      },
+      "crossVersionNotes": "This keyed settings contract is an explicit rc.2 gate; a missing key reproduces the reported keyed-slot loader failure.",
+      "patchOwner": "upstream package; compatibility gate owns the keyed-slot assertion",
+      "evidenceCapturedAt": "2026-08-22T13:33:21.733Z"
+    },
+    {
+      "name": "@liustack/modlens",
+      "kind": "plugin",
+      "status": "blocked",
+      "source": {
+        "kind": "local",
+        "requested": "^3.18.1 (profile evidence; overridden by compatibility/plugins.json localPackages)",
+        "resolved": "local:profiles/packages/modlens",
+        "version": "3.18.1-ricardo.1",
+        "commit": "c9949e4e2caaccef99a5310d30ec6449c1cf5c7c",
+        "integrity": "unresolved",
+        "status": "blocked",
+        "evidence": [
+          {
+            "kind": "local-package-map",
+            "path": "compatibility/plugins.json",
+            "contains": "profiles/packages/modlens"
+          },
+          {
+            "kind": "local-manifest",
+            "path": "profiles/packages/modlens/package.json",
+            "contains": "\"version\": \"3.18.1-ricardo.1\""
+          },
+          {
+            "kind": "compatibility-note",
+            "path": "profiles/packages/modlens/RICARDO-COMPATIBILITY.md",
+            "contains": "Local version: `3.18.1-ricardo.1`"
+          }
+        ],
+        "issues": [
+          "Local fork has no package-manager SRI; do not reuse the upstream 3.18.1 integrity for the Ricardo fork."
+        ]
+      },
+      "loaderId": "modlens",
+      "clientLoaderId": "@liustack/modlens",
+      "clientInjectDependencies": [],
+      "hostActivationAssertion": {
+        "status": "passed",
+        "assertion": "The local bundle patch inserts modlens and resolves the package root to dsh/index.js.",
+        "evidence": [
+          {
+            "kind": "cordis-patch",
+            "path": "profiles/packages/modlens/cordis.patch.yml",
+            "contains": "id: modlens"
+          },
+          {
+            "kind": "cordis-patch",
+            "path": "profiles/packages/modlens/cordis.patch.yml",
+            "contains": "name: '@liustack/modlens'"
+          }
+        ]
+      },
+      "clientSlotAssertion": {
+        "status": "passed",
+        "slot": "settings.plugin.item",
+        "key": "modlens",
+        "keyPolicy": "Keyed settings.plugin.item; local fork carries the required stable key modlens.",
+        "evidence": [
+          {
+            "kind": "client-bundle",
+            "path": "profiles/packages/modlens/dsh/client.js",
+            "contains": "settings.plugin.item"
+          },
+          {
+            "kind": "client-bundle",
+            "path": "profiles/packages/modlens/dsh/client.js",
+            "contains": "key: 'modlens'"
+          }
+        ]
+      },
+      "userAction": {
+        "status": "pending",
+        "action": "打开 ModLens 设置并在隔离测试图片上触发一次 read_image/paste bridge。",
+        "task": "Task 11 GUI/真实 action"
+      },
+      "routeRpcStorageEffect": {
+        "routes": [
+          "POST /modlens/paste",
+          "GET/POST /modlens/config"
+        ],
+        "rpc": [
+          "tool modlens_read_image",
+          "configured LLM route selection"
+        ],
+        "storage": [
+          "~/.modlens/config.json",
+          "temporary pasted image path"
+        ]
+      },
+      "crossVersionNotes": "The fork is intentionally local and keyed for the current settings contract; package integrity must be added by the candidate packager before release.",
+      "patchOwner": "Ricardo compatibility fork at profiles/packages/modlens",
+      "evidenceCapturedAt": "2026-08-22T13:33:21.733Z"
+    },
+    {
+      "name": "@nanmicoder/dsh-agent-teams",
+      "kind": "plugin",
+      "status": "pending",
+      "source": {
+        "kind": "npm",
+        "requested": "0.1.5",
+        "resolved": "npm:@nanmicoder/dsh-agent-teams@0.1.5",
+        "version": "0.1.5",
+        "commit": "not-applicable",
+        "integrity": "sha512-vMroskMO3zwP4WuPjazx4tRjzHfp9xIjlmBwWKhM7SFnWq/nC/kRhzYtlAMVk6tEd2keEW0/+NIXeiy2ZiHFVg==",
+        "status": "passed",
+        "evidence": [
+          {
+            "kind": "profile-lock",
+            "path": "profiles/evidence/web-2026-08-22/pnpm-lock.yaml",
+            "contains": "@nanmicoder/dsh-agent-teams@0.1.5"
+          }
+        ],
+        "issues": []
+      },
+      "loaderId": "agent-teams",
+      "clientLoaderId": "@nanmicoder/dsh-agent-teams",
+      "clientInjectDependencies": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ],
+      "hostActivationAssertion": {
+        "status": "pending",
+        "assertion": "Cordis inserts the agent-teams row with the NanmiCoder package name.",
+        "evidence": []
+      },
+      "clientSlotAssertion": {
+        "status": "pending",
+        "slot": "conversation.chat.node",
+        "key": "agent-teams",
+        "keyPolicy": "Keyed conversation node; stable key agent-teams is required.",
+        "evidence": []
+      },
+      "userAction": {
+        "status": "pending",
+        "action": "创建一个隔离 Agent Team，查看状态，再删除该测试团队。",
+        "task": "Task 11 GUI/真实 action"
+      },
+      "routeRpcStorageEffect": {
+        "routes": [
+          "GET /plugins/dsh-agent-teams/state",
+          "GET /plugins/dsh-agent-teams/assets/<name>"
+        ],
+        "rpc": [
+          "agent_teams_add_member",
+          "agent team status/update tools"
+        ],
+        "storage": [
+          "session-scoped team events and isolated test-team state"
+        ]
+      },
+      "crossVersionNotes": "Published peers target rc.6-era APIs; both Host state routes and conversation node key require rc.2 GUI proof.",
+      "patchOwner": "upstream package; no local patch",
+      "evidenceCapturedAt": "2026-08-22T13:33:21.733Z"
+    },
+    {
+      "name": "@omdsh-dev/dsh-annotation",
+      "kind": "plugin",
+      "status": "pending",
+      "source": {
+        "kind": "github",
+        "requested": "github:omdsh-dev/dsh-annotation",
+        "resolved": "https://codeload.github.com/omdsh-dev/dsh-annotation/tar.gz/0b0ceb6415c5c1204b9f73716e905b392acd729b",
+        "version": "1.3.16",
+        "commit": "0b0ceb6415c5c1204b9f73716e905b392acd729b",
+        "integrity": "sha512-Zx2ZGmJGAEOO1TyV+9h3i2+fjOU+cNlZUymEHkHbpiV22X1AOLXqK80PqH3B3bDOpTgs8q1VyNG5LDFdcTgkwQ==",
+        "status": "passed",
+        "evidence": [
+          {
+            "kind": "profile-lock",
+            "path": "profiles/evidence/web-2026-08-22/pnpm-lock.yaml",
+            "contains": "0b0ceb6415c5c1204b9f73716e905b392acd729b"
+          }
+        ],
+        "issues": []
+      },
+      "loaderId": "dsh-annotation",
+      "clientLoaderId": "@omdsh-dev/dsh-annotation",
+      "clientInjectDependencies": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ],
+      "hostActivationAssertion": {
+        "status": "pending",
+        "assertion": "Cordis inserts the annotation row; the Node half is intentionally inert and the browser half owns the interaction.",
+        "evidence": []
+      },
+      "clientSlotAssertion": {
+        "status": "pending",
+        "mode": "manual-module-loader-dom",
+        "slot": "dom-owned annotation toolbar and message decorations",
+        "keyPolicy": "No official Cordis slot registration is claimed; the bundle registers its ModuleLoader identity and owns its DOM markers.",
+        "evidence": []
+      },
+      "userAction": {
+        "status": "pending",
+        "action": "选中一段助手文本、添加批注并发送，确认批注块和回复芯片。",
+        "task": "Task 11 GUI/真实 action"
+      },
+      "routeRpcStorageEffect": {
+        "routes": [],
+        "rpc": [
+          "composer setDraft / normal message submit"
+        ],
+        "storage": [
+          "DOM/session message annotations; no separate Host storage claimed"
+        ]
+      },
+      "crossVersionNotes": "Manual DOM integration is intentionally isolated from official slot contracts; GUI pageerror/action proof is required across rc.2 shell changes.",
+      "patchOwner": "upstream package; no local patch",
+      "evidenceCapturedAt": "2026-08-22T13:33:21.733Z"
+    },
+    {
+      "name": "aegis",
+      "kind": "plugin",
+      "status": "pending",
+      "source": {
+        "kind": "github",
+        "requested": "github:GanyuanRan/Aegis",
+        "resolved": "https://codeload.github.com/GanyuanRan/Aegis/tar.gz/21b27d23598ef492834427e2a1381b744f66b787",
+        "version": "2.8.0",
+        "commit": "21b27d23598ef492834427e2a1381b744f66b787",
+        "integrity": "sha512-AuKHB++CQuvNaJwO5PfHPUcmz/O2i5o0Nsg1U69SII/loCJlFI1Romd9xp2HYb1kYJRGZotyqRghuHH5n8Kw==",
+        "status": "passed",
+        "evidence": [
+          {
+            "kind": "profile-package",
+            "path": "profiles/evidence/web-2026-08-22/package.json",
+            "contains": "github:GanyuanRan/Aegis"
+          },
+          {
+            "kind": "profile-lock",
+            "path": "profiles/evidence/web-2026-08-22/pnpm-lock.yaml",
+            "contains": "21b27d23598ef492834427e2a1381b744f66b787"
+          }
+        ],
+        "issues": []
+      },
+      "loaderId": "aegis-method-pack",
+      "clientLoaderId": "none",
+      "clientInjectDependencies": [],
+      "hostActivationAssertion": {
+        "status": "pending",
+        "assertion": "The Aegis DSH patch inserts the method-pack extension and its bundled skills provider.",
+        "evidence": []
+      },
+      "clientSlotAssertion": {
+        "status": "pending",
+        "mode": "none",
+        "slot": "none",
+        "keyPolicy": "Host skill/method-pack only; package manifest declares no dsh.client contribution.",
+        "evidence": []
+      },
+      "userAction": {
+        "status": "pending",
+        "action": "在隔离工作区触发一次 Aegis 方法/skill 发现并确认工作路径可用。",
+        "task": "Task 11 GUI/真实 action"
+      },
+      "routeRpcStorageEffect": {
+        "routes": [],
+        "rpc": [
+          "skills provider / Aegis method pack registration"
+        ],
+        "storage": [
+          "Aegis skill tree and isolated work path read/write according to DSH permissions"
+        ]
+      },
+      "crossVersionNotes": "Aegis is a host skill provider, not a browser bundle; the DSH skill service anchor must remain compatible across runtime upgrades.",
+      "patchOwner": "upstream Aegis DSH extension",
+      "evidenceCapturedAt": "2026-08-22T13:33:21.733Z"
+    },
+    {
+      "name": "dsh-better-sidebar",
+      "kind": "plugin",
+      "status": "pending",
+      "source": {
+        "kind": "npm",
+        "requested": "0.12.2",
+        "resolved": "npm:dsh-better-sidebar@0.12.2",
+        "version": "0.12.2",
+        "commit": "not-applicable",
+        "integrity": "sha512-b9N/Ie9d8qz/ayyf6sa+8KAqRuM3i85QLpcyu5/zWGXfB440YOVIA0r2vEFG0HVmFBO8KfLLiIgG59yo0JkK9Q==",
+        "status": "passed",
+        "evidence": [
+          {
+            "kind": "profile-lock",
+            "path": "profiles/evidence/web-2026-08-22/pnpm-lock.yaml",
+            "contains": "dsh-better-sidebar@0.12.2"
+          }
+        ],
+        "issues": []
+      },
+      "loaderId": "better-sidebar",
+      "clientLoaderId": "dsh-better-sidebar",
+      "clientInjectDependencies": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-slots",
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ],
+      "hostActivationAssertion": {
+        "status": "pending",
+        "assertion": "Cordis inserts the better-sidebar Host row under id better-sidebar.",
+        "evidence": []
+      },
+      "clientSlotAssertion": {
+        "status": "pending",
+        "slot": "settings.section; conversation.chat.turnTail",
+        "keyPolicy": "Asserted registrations are id-based list/turn-tail entries; no keyed settings.plugin.item claim.",
+        "evidence": []
+      },
+      "userAction": {
+        "status": "pending",
+        "action": "打开侧栏工作区/终端视图并切换一个布局。",
+        "task": "Task 11 GUI/真实 action"
+      },
+      "routeRpcStorageEffect": {
+        "routes": [
+          "/sidebar/api/*",
+          "/sidebar/ws/agent-terminals",
+          "/sidebar/html/*"
+        ],
+        "rpc": [
+          "sidebar/session/workspace API",
+          "agent terminal WebSocket"
+        ],
+        "storage": [
+          "browser localStorage layout state scoped by session"
+        ]
+      },
+      "crossVersionNotes": "The package targets rc.6-era sidebar services and carries a separate client loader identity; verify no duplicate sidebar ownership in the rc.2 shell.",
+      "patchOwner": "upstream npm package; no local patch",
+      "evidenceCapturedAt": "2026-08-22T13:33:21.733Z"
+    },
+    {
+      "name": "dsh-codex-connect",
+      "kind": "plugin",
+      "status": "pending",
+      "source": {
+        "kind": "npm",
+        "requested": "0.1.0-alpha.4.5",
+        "resolved": "npm:dsh-codex-connect@0.1.0-alpha.4.5",
+        "version": "0.1.0-alpha.4.5",
+        "commit": "not-applicable",
+        "integrity": "sha512-ZBUCWwTNgDdpwgwV5vSrWOv299g5WuD5pCmTUa6Bug7JsWD0fpaDswM3QRkk66sIyND3uaBYe7wSAFdgs6QBEw==",
+        "status": "passed",
+        "evidence": [
+          {
+            "kind": "profile-lock",
+            "path": "profiles/evidence/web-2026-08-22/pnpm-lock.yaml",
+            "contains": "dsh-codex-connect@0.1.0-alpha.4.5"
+          }
+        ],
+        "issues": []
+      },
+      "loaderId": "llm-openai-codex",
+      "clientLoaderId": "dsh-codex-connect",
+      "clientInjectDependencies": [
+        "@deepseek-ai/dsh-api-remotes",
+        "@deepseek-ai/dsh-client-connection",
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-settings-plugins",
+        "@deepseek-ai/dsh-client-locale"
+      ],
+      "hostActivationAssertion": {
+        "status": "pending",
+        "assertion": "Cordis inserts llm-openai-codex with the dsh-codex-connect package name.",
+        "evidence": []
+      },
+      "clientSlotAssertion": {
+        "status": "pending",
+        "slot": "settings.plugin.item",
+        "key": "openai-codex",
+        "keyPolicy": "Keyed settings card; key openai-codex must remain unique.",
+        "evidence": []
+      },
+      "userAction": {
+        "status": "pending",
+        "action": "打开 Codex 设置，读取只读认证状态，不输出或写入任何 secret。",
+        "task": "Task 11 GUI/真实 action"
+      },
+      "routeRpcStorageEffect": {
+        "routes": [
+          "GET /plugins/dsh-openai-codex/auth/status",
+          "POST /plugins/dsh-openai-codex/auth/login",
+          "POST /plugins/dsh-openai-codex/auth/logout"
+        ],
+        "rpc": [
+          "settingsScope openai-codex",
+          "provider registration/read-only auth status"
+        ],
+        "storage": [
+          "managed provider settings and trusted auth state; secrets never enter matrix/evidence"
+        ]
+      },
+      "crossVersionNotes": "The alpha package consumes several wildcard DSH peers; auth status and settings card must be checked against the exact rc.2 API graph.",
+      "patchOwner": "upstream npm package; no local patch",
+      "evidenceCapturedAt": "2026-08-22T13:33:21.733Z"
+    },
+    {
+      "name": "dsh-design-skills",
+      "kind": "plugin",
+      "status": "pending",
+      "source": {
+        "kind": "github",
+        "requested": "github:zhaiyateng/dsh-design-skills",
+        "resolved": "https://codeload.github.com/zhaiyateng/dsh-design-skills/tar.gz/741272753c257c9b48fb60b015b4ecdb438d86e3",
+        "version": "0.1.0",
+        "commit": "741272753c257c9b48fb60b015b4ecdb438d86e3",
+        "integrity": "sha512-EkpQ1yP43GemuJaP4qoA0E5xvlpkwLZA+9ntw3qLs+2gjBE03J8rLp4Q2SM7zrNP/W717ooLrDkhs26OAirUJw==",
+        "status": "passed",
+        "evidence": [
+          {
+            "kind": "profile-lock",
+            "path": "profiles/evidence/web-2026-08-22/pnpm-lock.yaml",
+            "contains": "741272753c257c9b48fb60b015b4ecdb438d86e3"
+          }
+        ],
+        "issues": []
+      },
+      "loaderId": "dsh-design-skills",
+      "clientLoaderId": "none",
+      "clientInjectDependencies": [],
+      "hostActivationAssertion": {
+        "status": "pending",
+        "assertion": "Cordis inserts dsh-design-skills as a host skill bundle.",
+        "evidence": []
+      },
+      "clientSlotAssertion": {
+        "status": "pending",
+        "mode": "none",
+        "slot": "none",
+        "keyPolicy": "Skill-only bundle; no browser client contribution is declared.",
+        "evidence": []
+      },
+      "userAction": {
+        "status": "pending",
+        "action": "打开 skill inventory，确认设计技能名称和一项技能正文可读。",
+        "task": "Task 11 GUI/真实 action"
+      },
+      "routeRpcStorageEffect": {
+        "routes": [],
+        "rpc": [
+          "skill registry discovery"
+        ],
+        "storage": [
+          "read-only packaged skills and workspace skill paths"
+        ]
+      },
+      "crossVersionNotes": "Host-only skill package; it depends on the DSH skill registry rather than a client slot, so the registry anchor is the compatibility boundary.",
+      "patchOwner": "upstream package; no local patch",
+      "evidenceCapturedAt": "2026-08-22T13:33:21.733Z"
+    },
+    {
+      "name": "dsh-expression",
+      "kind": "plugin",
+      "status": "blocked",
+      "source": {
+        "kind": "github",
+        "requested": "github:yyh-001/dsh-expression",
+        "resolved": "https://codeload.github.com/yyh-001/dsh-expression/tar.gz/227604955e88b42dcbbe09430399fe6fd472a9cb",
+        "version": "0.1.2",
+        "commit": "227604955e88b42dcbbe09430399fe6fd472a9cb",
+        "integrity": "sha512-hSC3zScRFu9V5U3yBkaCZoSH/E30DtfBdiZncHCyRUhPPSklagT9apa94w6Ltm5T6EZliZy2CZO1V9oscnCtVg==",
+        "status": "blocked",
+        "evidence": [
+          {
+            "kind": "profile-lock",
+            "path": "profiles/evidence/web-2026-08-22/pnpm-lock.yaml",
+            "contains": "227604955e88b42dcbbe09430399fe6fd472a9cb"
+          },
+          {
+            "kind": "profile-lock",
+            "path": "profiles/evidence/web-2026-08-22/pnpm-lock.yaml",
+            "contains": "sha512-hSC3zScRFu9V5U3yBkaCZoSH/E30DtfBdiZncHCyRUhPPSklagT9apa94w6Ltm5T6EZliZy2CZO1V9oscnCtVg=="
+          }
+        ],
+        "issues": [
+          "The profile package request remains floating Git; the exact commit/integrity pair is recorded but must be promoted to an immutable source before release."
+        ]
+      },
+      "loaderId": "dsh-expression",
+      "clientLoaderId": "dsh-expression",
+      "clientInjectDependencies": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-connection",
+        "@deepseek-ai/dsh-client-ui-settings"
+      ],
+      "hostActivationAssertion": {
+        "status": "pending",
+        "assertion": "Cordis inserts dsh-expression under its own loader row.",
+        "evidence": []
+      },
+      "clientSlotAssertion": {
+        "status": "pending",
+        "slot": "settings.section; conversation.input.left; conversation.input.overlay",
+        "keyPolicy": "All asserted expression registrations are id-based and do not claim keyed settings.plugin.item.",
+        "evidence": []
+      },
+      "userAction": {
+        "status": "pending",
+        "action": "打开表情包面板，读取一项并新增一项隔离测试素材。",
+        "task": "Task 11 GUI/真实 action"
+      },
+      "routeRpcStorageEffect": {
+        "routes": [
+          "GET/POST /dsh-memes-api",
+          "GET /dsh-memes/*",
+          "GET /memes-panel"
+        ],
+        "rpc": [
+          "expression settings and meme API"
+        ],
+        "storage": [
+          "profile-managed meme directory and metadata; persistent across restart"
+        ]
+      },
+      "crossVersionNotes": "Client slots are structurally observed, but floating Git source and its old lock resolution are a release blocker until a newly resolved immutable source is recorded.",
+      "patchOwner": "compatibility gate; no source patch permitted in Task 10",
+      "evidenceCapturedAt": "2026-08-22T13:33:21.733Z"
+    },
+    {
+      "name": "dsh-health-tool",
+      "kind": "plugin",
+      "status": "blocked",
+      "source": {
+        "kind": "local",
+        "requested": "file:./node_modules/dsh-health-tool (profile evidence; compatibility localPackages override)",
+        "resolved": "local:profiles/packages/dsh-health-tool",
+        "version": "0.1.0",
+        "commit": "3dff35a6f16406b93d1732415e9a4fb59ac5dd04",
+        "integrity": "unresolved",
+        "status": "blocked",
+        "evidence": [
+          {
+            "kind": "local-package-map",
+            "path": "compatibility/plugins.json",
+            "contains": "profiles/packages/dsh-health-tool"
+          },
+          {
+            "kind": "local-manifest",
+            "path": "profiles/packages/dsh-health-tool/package.json",
+            "contains": "\"version\": \"0.1.0\""
+          },
+          {
+            "kind": "local-entry",
+            "path": "profiles/packages/dsh-health-tool/lib/index.js",
+            "contains": "export const name = 'dsh-health-tool'"
+          }
+        ],
+        "issues": [
+          "Local package has no package-manager SRI; candidate packaging must produce and verify an exact local artifact digest."
+        ]
+      },
+      "loaderId": "dsh-health-tool",
+      "clientLoaderId": "none",
+      "clientInjectDependencies": [],
+      "hostActivationAssertion": {
+        "status": "passed",
+        "assertion": "Local cordis patch inserts the health-tool host row and its tool entry exports the same name.",
+        "evidence": [
+          {
+            "kind": "cordis-patch",
+            "path": "profiles/packages/dsh-health-tool/cordis.patch.yml",
+            "contains": "id: dsh-health-tool"
+          },
+          {
+            "kind": "host-entry",
+            "path": "profiles/packages/dsh-health-tool/lib/index.js",
+            "contains": "ctx.tools.register"
+          }
+        ]
+      },
+      "clientSlotAssertion": {
+        "status": "passed",
+        "mode": "none",
+        "slot": "none",
+        "keyPolicy": "Host tool only; package manifest declares no dsh.client contribution.",
+        "evidence": [
+          {
+            "kind": "package-manifest",
+            "path": "profiles/packages/dsh-health-tool/package.json",
+            "absent": "dsh.client"
+          },
+          {
+            "kind": "host-entry",
+            "path": "profiles/packages/dsh-health-tool/lib/index.js",
+            "contains": "export const inject = ['tools', 'llm']"
+          }
+        ]
+      },
+      "userAction": {
+        "status": "pending",
+        "action": "调用健康检查工具，确认 Host、supervisor、providers、代理和磁盘报告真实。",
+        "task": "Task 11 GUI/真实 action"
+      },
+      "routeRpcStorageEffect": {
+        "routes": [],
+        "rpc": [
+          "tool dsh-health-tool"
+        ],
+        "storage": [
+          "read-only ~/.dsh/process/runtime checks and disk statistics"
+        ]
+      },
+      "crossVersionNotes": "Local host tool is tied to the Ricardo compatibility recipe; local artifact integrity is still required before packaging.",
+      "patchOwner": "profiles/packages/dsh-health-tool",
+      "evidenceCapturedAt": "2026-08-22T13:33:21.733Z"
+    },
+    {
+      "name": "dsh-mnemon",
+      "kind": "plugin",
+      "status": "pending",
+      "source": {
+        "kind": "npm",
+        "requested": "^0.1.1",
+        "resolved": "npm:dsh-mnemon@0.1.1",
+        "version": "0.1.1",
+        "commit": "not-applicable",
+        "integrity": "sha512-I/9AFLIm+BafhKsF1olCHxhkkW41tQG+z48pMN52Gl/YLhAZ3i5j7GSRAQXjxrC3qHlcJOAxf3gsnm3bp3AkxA==",
+        "status": "passed",
+        "evidence": [
+          {
+            "kind": "profile-lock",
+            "path": "profiles/evidence/web-2026-08-22/pnpm-lock.yaml",
+            "contains": "dsh-mnemon@0.1.1"
+          }
+        ],
+        "issues": []
+      },
+      "loaderId": "mnemon",
+      "clientLoaderId": "dsh-mnemon",
+      "clientInjectDependencies": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-connection",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-locale"
+      ],
+      "hostActivationAssertion": {
+        "status": "pending",
+        "assertion": "Cordis inserts the mnemon row and the profile patch supplies the explicit Windows CLI path/config.",
+        "evidence": []
+      },
+      "clientSlotAssertion": {
+        "status": "pending",
+        "slot": "conversation.view; settings.section; tool.call.toolview",
+        "keyPolicy": "Toolview entries are keyed by tool name; view/settings entries are id-based. No keyed settings.plugin.item claim.",
+        "evidence": []
+      },
+      "userAction": {
+        "status": "pending",
+        "action": "打开 Mnemon 设置，执行只读 status，再在隔离记忆空间进行一次测试写入/回读。",
+        "task": "Task 11 GUI/真实 action"
+      },
+      "routeRpcStorageEffect": {
+        "routes": [],
+        "rpc": [
+          "/dsh-mnemon-read",
+          "/dsh-mnemon-write",
+          "/dsh-mnemon-pack"
+        ],
+        "storage": [
+          "configured Mnemon global/workspace/custom storage root",
+          ".mnemon documents and memory spaces"
+        ]
+      },
+      "crossVersionNotes": "The profile patch pins the Windows CLI and lifecycle settings; the exact client RPC channels must be exercised against the paired rc.2 runtime.",
+      "patchOwner": "profile patch owner: profiles/evidence/web-2026-08-22/cordis.patch.yml",
+      "evidenceCapturedAt": "2026-08-22T13:33:21.733Z"
+    },
+    {
+      "name": "dsh-notification",
+      "kind": "plugin",
+      "status": "pending",
+      "source": {
+        "kind": "github",
+        "requested": "github:omdsh-dev/dsh-notification",
+        "resolved": "https://codeload.github.com/omdsh-dev/dsh-notification/tar.gz/3e33100f51f25f24cece20bfd3d50cfbde0cbca5",
+        "version": "0.1.1",
+        "commit": "3e33100f51f25f24cece20bfd3d50cfbde0cbca5",
+        "integrity": "sha512-GJaV05LG6CE9pvnMdW9E4xDN/AuOB0OBWIlD/g6ZRPSzx0BOzIzCNw2s9VC7VoYx2G/qQsa8od14xbY1ojgVGg==",
+        "status": "passed",
+        "evidence": [
+          {
+            "kind": "profile-lock",
+            "path": "profiles/evidence/web-2026-08-22/pnpm-lock.yaml",
+            "contains": "3e33100f51f25f24cece20bfd3d50cfbde0cbca5"
+          }
+        ],
+        "issues": []
+      },
+      "loaderId": "dsh-notification",
+      "clientLoaderId": "dsh-notification",
+      "clientInjectDependencies": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-slots",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-locale"
+      ],
+      "hostActivationAssertion": {
+        "status": "pending",
+        "assertion": "Cordis inserts dsh-notification under its dedicated row.",
+        "evidence": []
+      },
+      "clientSlotAssertion": {
+        "status": "pending",
+        "slot": "settings.section",
+        "keyPolicy": "Settings section is id-based; notification outcome keys are internal settings fields, not slot keys.",
+        "evidence": []
+      },
+      "userAction": {
+        "status": "pending",
+        "action": "在通知设置中发送一次本地测试通知并确认权限失败时界面仍可恢复。",
+        "task": "Task 11 GUI/真实 action"
+      },
+      "routeRpcStorageEffect": {
+        "routes": [],
+        "rpc": [
+          "notification permission/test notification service"
+        ],
+        "storage": [
+          "notification settings namespace and browser settings storage"
+        ]
+      },
+      "crossVersionNotes": "Notification is settings-driven and permission-sensitive; validate local-only behavior without relying on a remote notification service.",
+      "patchOwner": "upstream package; no local patch",
+      "evidenceCapturedAt": "2026-08-22T13:33:21.733Z"
+    },
+    {
+      "name": "dsh-restart-tool",
+      "kind": "plugin",
+      "status": "blocked",
+      "source": {
+        "kind": "local",
+        "requested": "file:./node_modules/dsh-restart-tool (profile evidence; compatibility localPackages override)",
+        "resolved": "local:profiles/packages/dsh-restart-tool",
+        "version": "0.1.1",
+        "commit": "3dff35a6f16406b93d1732415e9a4fb59ac5dd04",
+        "integrity": "unresolved",
+        "status": "blocked",
+        "evidence": [
+          {
+            "kind": "local-package-map",
+            "path": "compatibility/plugins.json",
+            "contains": "profiles/packages/dsh-restart-tool"
+          },
+          {
+            "kind": "local-manifest",
+            "path": "profiles/packages/dsh-restart-tool/package.json",
+            "contains": "\"version\": \"0.1.1\""
+          },
+          {
+            "kind": "local-entry",
+            "path": "profiles/packages/dsh-restart-tool/lib/index.js",
+            "contains": "export const name = 'dsh-restart-tool'"
+          }
+        ],
+        "issues": [
+          "Local package has no package-manager SRI; candidate packaging must produce and verify an exact local artifact digest."
+        ]
+      },
+      "loaderId": "dsh-restart-tool",
+      "clientLoaderId": "none",
+      "clientInjectDependencies": [],
+      "hostActivationAssertion": {
+        "status": "passed",
+        "assertion": "Local cordis patch inserts the restart tool and the host entry declares tools/goals dependencies.",
+        "evidence": [
+          {
+            "kind": "cordis-patch",
+            "path": "profiles/packages/dsh-restart-tool/cordis.patch.yml",
+            "contains": "id: dsh-restart-tool"
+          },
+          {
+            "kind": "host-entry",
+            "path": "profiles/packages/dsh-restart-tool/lib/index.js",
+            "contains": "export const inject = ['tools', 'goals']"
+          }
+        ]
+      },
+      "clientSlotAssertion": {
+        "status": "passed",
+        "mode": "none",
+        "slot": "none",
+        "keyPolicy": "Host tool only; package manifest declares no dsh.client contribution.",
+        "evidence": [
+          {
+            "kind": "package-manifest",
+            "path": "profiles/packages/dsh-restart-tool/package.json",
+            "absent": "dsh.client"
+          },
+          {
+            "kind": "host-entry",
+            "path": "profiles/packages/dsh-restart-tool/lib/index.js",
+            "contains": "restart_dsh"
+          }
+        ]
+      },
+      "userAction": {
+        "status": "pending",
+        "action": "在隔离 DSH_HOME/session 中验证 restart continuation ticket 的创建、消费和过期，不触发 live 重启。",
+        "task": "Task 11/12 isolated action gate"
+      },
+      "routeRpcStorageEffect": {
+        "routes": [],
+        "rpc": [
+          "tool restart_dsh",
+          "agent/session-start resume hook"
+        ],
+        "storage": [
+          "%LOCALAPPDATA%/DeepSeekHarness/run/restart-continuation-<session>.json"
+        ]
+      },
+      "crossVersionNotes": "The local recipe is anchor-sensitive; unknown DSH goal/session anchors must fail closed rather than silently issuing a restart.",
+      "patchOwner": "profiles/packages/dsh-restart-tool",
+      "evidenceCapturedAt": "2026-08-22T13:33:21.733Z"
+    },
+    {
+      "name": "dsh-skill-manager-ytxue",
+      "kind": "plugin",
+      "status": "blocked",
+      "source": {
+        "kind": "github",
+        "requested": "github:YTxue/dsh-skill-manager-ytxue",
+        "resolved": "https://codeload.github.com/YTxue/dsh-skill-manager-ytxue/tar.gz/f254f3005a446062e312144f27ed0820d38d4654",
+        "version": "0.6.0",
+        "commit": "f254f3005a446062e312144f27ed0820d38d4654",
+        "integrity": "unresolved",
+        "status": "blocked",
+        "evidence": [
+          {
+            "kind": "profile-lock",
+            "path": "profiles/evidence/web-2026-08-22/pnpm-lock.yaml",
+            "contains": "f254f3005a446062e312144f27ed0820d38d4654"
+          }
+        ],
+        "issues": [
+          "pnpm lock resolves an exact commit but has no integrity value; do not synthesize a checksum."
+        ]
+      },
+      "loaderId": "skill-manager-ytxue",
+      "clientLoaderId": "dsh-skill-manager-ytxue",
+      "clientInjectDependencies": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-slots"
+      ],
+      "hostActivationAssertion": {
+        "status": "pending",
+        "assertion": "Cordis inserts skill-manager-ytxue and the Host entry exposes its API prefix route.",
+        "evidence": []
+      },
+      "clientSlotAssertion": {
+        "status": "pending",
+        "slot": "settings.section",
+        "keyPolicy": "Settings section is id-based; no keyed settings.plugin.item claim.",
+        "evidence": []
+      },
+      "userAction": {
+        "status": "pending",
+        "action": "打开 Skill 管理面板，执行 list/search/check 的隔离操作。",
+        "task": "Task 11 GUI/真实 action"
+      },
+      "routeRpcStorageEffect": {
+        "routes": [
+          "GET/POST /api/skill-manager-ytxue/state",
+          "/list-dir",
+          "/check",
+          "/enable",
+          "/disable",
+          "/import"
+        ],
+        "rpc": [
+          "skill manager list/search/check actions"
+        ],
+        "storage": [
+          "~/.dsh/skills",
+          "project .dsh/skills/.agents/skills",
+          "~/.dsh/skill-manager-ytxue.log"
+        ]
+      },
+      "crossVersionNotes": "Host/client APIs target rc.6-era skill/workspace peers; missing lock integrity blocks release until the exact artifact is re-resolved.",
+      "patchOwner": "upstream package; integrity gate owner is Task 10",
+      "evidenceCapturedAt": "2026-08-22T13:33:21.733Z"
+    },
+    {
+      "name": "dsh-update-button",
+      "kind": "plugin",
+      "status": "blocked",
+      "source": {
+        "kind": "local",
+        "requested": "file:./node_modules/dsh-update-button (profile evidence; compatibility localPackages override)",
+        "resolved": "local:profiles/packages/dsh-update-button",
+        "version": "0.1.0",
+        "commit": "fde97c0014b24a228b8d7f506a9082ae06f65b23",
+        "integrity": "unresolved",
+        "status": "blocked",
+        "evidence": [
+          {
+            "kind": "local-package-map",
+            "path": "compatibility/plugins.json",
+            "contains": "profiles/packages/dsh-update-button"
+          },
+          {
+            "kind": "local-manifest",
+            "path": "profiles/packages/dsh-update-button/package.json",
+            "contains": "\"version\": \"0.1.0\""
+          },
+          {
+            "kind": "local-patch",
+            "path": "profiles/packages/dsh-update-button/cordis.patch.yml",
+            "contains": "id: update-button"
+          }
+        ],
+        "issues": [
+          "Local package has no package-manager SRI; candidate packaging must produce and verify an exact local artifact digest."
+        ]
+      },
+      "loaderId": "update-button",
+      "clientLoaderId": "dsh-update-button",
+      "clientInjectDependencies": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-sidebar"
+      ],
+      "hostActivationAssertion": {
+        "status": "passed",
+        "assertion": "The local patch inserts update-button; Host half is inert and owns no update write route.",
+        "evidence": [
+          {
+            "kind": "cordis-patch",
+            "path": "profiles/packages/dsh-update-button/cordis.patch.yml",
+            "contains": "id: update-button"
+          },
+          {
+            "kind": "host-entry",
+            "path": "profiles/packages/dsh-update-button/lib/index.js",
+            "contains": "export function apply() {}"
+          }
+        ]
+      },
+      "clientSlotAssertion": {
+        "status": "passed",
+        "slot": "sidebar.footer.action",
+        "keyPolicy": "Official list slot; no keyed settings.plugin.item registration. Click delegates only to the trusted Desktop IPC bridge.",
+        "ipc": "dshDesktop.openUpdate",
+        "evidence": [
+          {
+            "kind": "client-bundle",
+            "path": "profiles/packages/dsh-update-button/lib/client.js",
+            "contains": "sidebar.footer.action"
+          },
+          {
+            "kind": "client-bundle",
+            "path": "profiles/packages/dsh-update-button/lib/client.js",
+            "contains": "dshDesktop?.openUpdate"
+          }
+        ]
+      },
+      "userAction": {
+        "status": "pending",
+        "action": "点击侧栏更新按钮，确认只打开 Desktop Update route，不出现 /dsh-update/apply 或 Host 写入。",
+        "task": "Task 11 GUI/真实 action"
+      },
+      "routeRpcStorageEffect": {
+        "routes": [
+          "Desktop-owned Update route"
+        ],
+        "rpc": [
+          "trusted renderer-to-main Desktop IPC: openUpdate"
+        ],
+        "storage": [
+          "none from the plugin click; update preparation remains main-process owned"
+        ]
+      },
+      "crossVersionNotes": "sidebar.footer.action is the official rc.2 list slot; the Desktop bridge and real click/security proof remain pending.",
+      "patchOwner": "profiles/packages/dsh-update-button",
+      "evidenceCapturedAt": "2026-08-22T13:33:21.733Z"
+    },
+    {
+      "name": "dsh-usage-stats",
+      "kind": "plugin",
+      "status": "pending",
+      "source": {
+        "kind": "github",
+        "requested": "github:Ychris12138/dsh-usage-stats",
+        "resolved": "https://codeload.github.com/Ychris12138/dsh-usage-stats/tar.gz/77603ff7ed50e91ab0746e3a64e72fe1db907cd1",
+        "version": "0.2.0",
+        "commit": "77603ff7ed50e91ab0746e3a64e72fe1db907cd1",
+        "integrity": "sha512-SFWYj4CbMESUNe95yLOr/re12BUDBZZgVylIHE+c6F0bae+pjK5QutBXJOx+rVTNo/SZaLoSewJ82A0WCBjXEw==",
+        "status": "passed",
+        "evidence": [
+          {
+            "kind": "profile-lock",
+            "path": "profiles/evidence/web-2026-08-22/pnpm-lock.yaml",
+            "contains": "77603ff7ed50e91ab0746e3a64e72fe1db907cd1"
+          }
+        ],
+        "issues": []
+      },
+      "loaderId": "usage-stats",
+      "clientLoaderId": "dsh-usage-stats",
+      "clientInjectDependencies": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-primitives"
+      ],
+      "hostActivationAssertion": {
+        "status": "pending",
+        "assertion": "Cordis inserts usage-stats and the Host registers the five exact usage routes.",
+        "evidence": []
+      },
+      "clientSlotAssertion": {
+        "status": "pending",
+        "slot": "sidebar.footer.action",
+        "keyPolicy": "Official list slot; action uses id usage-stats and does not claim a keyed settings slot.",
+        "evidence": []
+      },
+      "userAction": {
+        "status": "pending",
+        "action": "打开用量统计侧栏，读取 usage/providers/account 并确认 totals 可解析。",
+        "task": "Task 11 GUI/真实 action"
+      },
+      "routeRpcStorageEffect": {
+        "routes": [
+          "GET /api/usage-stats/usage",
+          "GET /api/usage-stats/providers",
+          "GET /api/usage-stats/balance",
+          "GET /api/usage-stats/subscriptions",
+          "GET /api/usage-stats/account"
+        ],
+        "rpc": [
+          "usage provider/account read"
+        ],
+        "storage": [
+          "$DSH_HOME/storages/usage-stats-cache.json",
+          "session usage projection read"
+        ]
+      },
+      "crossVersionNotes": "Usage stats owns exact /api routes and a sidebar list action; real provider responses should be tested with secrets redacted and no network source inferred by this matrix.",
+      "patchOwner": "upstream package; no local patch",
+      "evidenceCapturedAt": "2026-08-22T13:33:21.733Z"
+    },
+    {
+      "name": "dshmarket",
+      "kind": "plugin",
+      "status": "pending",
+      "source": {
+        "kind": "npm",
+        "requested": "^1.15.0",
+        "resolved": "npm:dshmarket@1.15.0",
+        "version": "1.15.0",
+        "commit": "not-applicable",
+        "integrity": "sha512-E69XJp5jPOdALLml4Rbc8WX0WvdHs8WHdPuoP8408dLdNUDEX9lipIaCiqvjtsUmWPZ6pY83DAtDtvm+6ZAPnA==",
+        "status": "passed",
+        "evidence": [
+          {
+            "kind": "profile-lock",
+            "path": "profiles/evidence/web-2026-08-22/pnpm-lock.yaml",
+            "contains": "dshmarket@1.15.0"
+          }
+        ],
+        "issues": []
+      },
+      "loaderId": "dsh-market",
+      "clientLoaderId": "dshmarket",
+      "clientInjectDependencies": [
+        "@deepseek-ai/dsh-client-connection",
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-theme"
+      ],
+      "hostActivationAssertion": {
+        "status": "pending",
+        "assertion": "Cordis inserts dsh-market with package name dshmarket; all market writes remain a plugin transaction boundary for later tasks.",
+        "evidence": []
+      },
+      "clientSlotAssertion": {
+        "status": "pending",
+        "slot": "settings.section; settings.plugin.item; shell.overlay",
+        "key": "dsh-market",
+        "keyPolicy": "Keyed settings.plugin.item uses the resolved NS dsh-market; settings section and shell overlay are id/list registrations.",
+        "evidence": []
+      },
+      "userAction": {
+        "status": "pending",
+        "action": "打开市场、查看目录；在隔离 candidate profile 中提交一次 install request，确认不写 live profile。",
+        "task": "Task 11 GUI/真实 action"
+      },
+      "routeRpcStorageEffect": {
+        "routes": [
+          "/dsh-market/installed",
+          "/dsh-market/registry",
+          "/dsh-market/status",
+          "/dsh-market/check",
+          "/dsh-market/install",
+          "/dsh-market/update",
+          "/dsh-market/rollback",
+          "/dsh-market/bundle-order"
+        ],
+        "rpc": [
+          "market catalog and candidate transaction requests"
+        ],
+        "storage": [
+          "candidate profile/package transaction state",
+          "browser localStorage for non-secret UI preferences"
+        ]
+      },
+      "crossVersionNotes": "Market API and install/update flows must be routed through the candidate transaction owner in later tasks; this static row does not authorize live mutation.",
+      "patchOwner": "upstream npm package; transaction owner is the desktop candidate manager in later tasks",
+      "evidenceCapturedAt": "2026-08-22T13:33:21.733Z"
+    }
+  ],
+  "unresolved": [
+    {
+      "name": "@liustack/modlens",
+      "field": "source.integrity",
+      "reason": "local Ricardo fork has no package-manager SRI"
+    },
+    {
+      "name": "dsh-health-tool",
+      "field": "source.integrity",
+      "reason": "local package has no package-manager SRI"
+    },
+    {
+      "name": "dsh-restart-tool",
+      "field": "source.integrity",
+      "reason": "local package has no package-manager SRI"
+    },
+    {
+      "name": "dsh-skill-manager-ytxue",
+      "field": "source.integrity",
+      "reason": "exact Git commit is present but pnpm lock has no integrity"
+    },
+    {
+      "name": "dsh-update-button",
+      "field": "source.integrity",
+      "reason": "local package has no package-manager SRI"
+    }
+  ],
+  "pending": [
+    "@deepseek-ai/dsh-base",
+    "@deepseek-ai/dsh-web-app",
+    "@dsh-external/dsh-task-status",
+    "@dsh-external/dsh-visualize",
+    "@linxin666/dsh-client-ui-activity-heatmap",
+    "@liustack/modlens",
+    "@nanmicoder/dsh-agent-teams",
+    "@omdsh-dev/dsh-annotation",
+    "aegis",
+    "dsh-better-sidebar",
+    "dsh-codex-connect",
+    "dsh-design-skills",
+    "dsh-expression",
+    "dsh-health-tool",
+    "dsh-mnemon",
+    "dsh-notification",
+    "dsh-restart-tool",
+    "dsh-skill-manager-ytxue",
+    "dsh-update-button",
+    "dsh-usage-stats",
+    "dshmarket"
+  ],
+  "blockingIssues": [
+    "Task 11 GUI and real user actions are pending for all 21 rows.",
+    "Five rows have explicit unresolved source integrity and are blocked.",
+    "dsh-expression retains a floating Git request even though its current lock pair is exact; release must use a newly resolved immutable source.",
+    "No release may treat module import alone as compatibility proof.",
+    "Historical live-profile artifacts are not release evidence; current candidate runtime gates remain authoritative."
+  ],
+  "staticGate": {
+    "status": "blocked",
+    "releaseEligible": false,
+    "unresolvedCount": 5,
+    "pendingActionCount": 21
+  },
+  "releaseEligible": false
+}

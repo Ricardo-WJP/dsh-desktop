@@ -1,0 +1,41 @@
+{
+  "recordedAt": "2026-08-21T19:28:37.1276501+08:00",
+  "repository": {
+    "root": "C:/DSH/ricardo-dsh-desktop",
+    "head": "5a7fd60a74511071a1ca8034dd93b3c27ce21475",
+    "branch": "feat/ricardo-stable-client",
+    "preexistingTarget": false
+  },
+  "toolchain": {
+    "node": "v22.22.3",
+    "npm": "10.9.8",
+    "git": "2.54.0.windows.1"
+  },
+  "liveFiles": [
+    {
+      "path": "C:/Users/1/.dsh/profiles/web/package.json",
+      "sha256": "129BB4EE1FB792D6437DEEF434938F5D72E8D7587EB67DBA3647BFDB72DB8FD9",
+      "bytes": 1880
+    },
+    {
+      "path": "C:/Users/1/.dsh/profiles/web/cordis.patch.yml",
+      "sha256": "668AF18D65CAD3E2FBF3652CA2B55C2675F2941203263394889B5EF411BE400F",
+      "bytes": 1188
+    },
+    {
+      "path": "C:/Users/1/.dsh/profiles/web/pnpm-workspace.yaml",
+      "sha256": "0C8C5B9AC2EEF8BC826C720D904701F5BDDCCD58C538DD04FDB4A5959F4C727A",
+      "bytes": 296
+    },
+    {
+      "path": "C:/Users/1/AppData/Local/DeepSeekHarness/runtime/package.json",
+      "sha256": "C9B79389B009DA2C12DFFF07B16E32FE8619ED31E8816DEF73836CB9D6C63BC5",
+      "bytes": 65
+    },
+    {
+      "path": "C:/Users/1/AppData/Local/DeepSeekHarness/run/state.json",
+      "sha256": "8649E08CA60E142DEA6D5973E81C56AC4ED4E4D78DAED6948CBF0783033E511A",
+      "bytes": 386
+    }
+  ]
+}

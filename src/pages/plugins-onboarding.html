@@ -1,0 +1,839 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+      (() => {
+        const preference = new URLSearchParams(location.search).get('theme')
+        const media = matchMedia('(prefers-color-scheme: dark)')
+        const apply = () => {
+          const theme = preference === 'light' || preference === 'dark' ? preference : (media.matches ? 'dark' : 'light')
+          document.documentElement.dataset.theme = theme
+          document.documentElement.style.colorScheme = theme
+        }
+        apply()
+        if (preference === 'system') media.addEventListener?.('change', apply)
+      })()
+    </script>
+    <title>DeepSeek Harness · 推荐插件</title>
+    <style>
+      :root {
+        color-scheme: dark light;
+        --bg: #0c1017;
+        --bg-soft: #101721;
+        --panel: rgba(18, 25, 35, .92);
+        --panel-strong: #182231;
+        --line: #273445;
+        --line-soft: rgba(39, 52, 69, .82);
+        --text: #eff4fa;
+        --muted: #9aa9bd;
+        --accent: #c7d2e1;
+        --accent-strong: #f7f9fc;
+        --selection-surface: #ffffff;
+        --selection-border: #ffffff;
+        --selection-text: #111827;
+        --selection-muted: #4b5563;
+        --selection-tag-surface: #eef1f4;
+        --selection-tag-text: #1f2937;
+        --card-surface: rgba(255, 255, 255, .075);
+        --card-border: rgba(255, 255, 255, .42);
+        --card-hover-surface: rgba(255, 255, 255, .12);
+        --card-hover-border: rgba(255, 255, 255, .58);
+        --card-text: #eff4fa;
+        --card-muted: #c7d0dc;
+        --card-tag-surface: rgba(255, 255, 255, .14);
+        --card-tag-text: #f7f9fc;
+        --button-surface: #f4f6f9;
+        --button-hover: #ffffff;
+        --button-text: #121821;
+        --success: #76d6ae;
+        --danger: #ff9a9d;
+      }
+
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #f3f5f8;
+          --bg-soft: #eef2f7;
+          --panel: rgba(255, 255, 255, .94);
+          --panel-strong: #f8fafc;
+          --line: #dbe2eb;
+          --line-soft: rgba(219, 226, 235, .88);
+          --text: #152033;
+          --muted: #536176;
+          --accent: #4b5563;
+          --accent-strong: #111827;
+          --selection-surface: #111827;
+          --selection-border: #111827;
+          --selection-text: #ffffff;
+          --selection-muted: #d8e0ea;
+          --selection-tag-surface: rgba(255, 255, 255, .14);
+          --selection-tag-text: #ffffff;
+          --card-surface: #d8dde5;
+          --card-border: #b7c0cc;
+          --card-hover-surface: #f4f7fb;
+          --card-hover-border: #cbd5e1;
+          --card-text: #111827;
+          --card-muted: #4b5563;
+          --card-tag-surface: #eef1f4;
+          --card-tag-text: #1f2937;
+          --button-surface: #111827;
+          --button-hover: #000000;
+          --button-text: #ffffff;
+          --success: #087b56;
+          --danger: #bd3442;
+        }
+      }
+
+      :root[data-theme="light"] {
+        color-scheme: light;
+        --bg: #f3f5f8;
+        --bg-soft: #eef2f7;
+        --panel: rgba(255, 255, 255, .94);
+        --panel-strong: #f8fafc;
+        --line: #dbe2eb;
+        --line-soft: rgba(219, 226, 235, .88);
+        --text: #152033;
+        --muted: #536176;
+        --accent: #4b5563;
+        --accent-strong: #111827;
+        --selection-surface: #111827;
+        --selection-border: #111827;
+        --selection-text: #ffffff;
+        --selection-muted: #d8e0ea;
+        --selection-tag-surface: rgba(255, 255, 255, .14);
+        --selection-tag-text: #ffffff;
+        --card-surface: #d8dde5;
+        --card-border: #b7c0cc;
+        --card-hover-surface: #f4f7fb;
+        --card-hover-border: #cbd5e1;
+        --card-text: #111827;
+        --card-muted: #4b5563;
+        --card-tag-surface: #eef1f4;
+        --card-tag-text: #1f2937;
+        --button-surface: #111827;
+        --button-hover: #000000;
+        --button-text: #ffffff;
+        --success: #087b56;
+        --danger: #bd3442;
+      }
+
+      * { box-sizing: border-box; }
+      .drag-strip { position: fixed; z-index: 20; top: 0; right: 138px; left: 0; height: 36px; -webkit-app-region: drag; }
+      html, body {
+        width: 100%;
+        height: 100%;
+        min-height: 100%;
+        overflow: hidden;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        min-width: 0;
+        margin: 0;
+        color: var(--text);
+        font-family: "Segoe UI", "Microsoft YaHei UI", system-ui, sans-serif;
+        background: var(--bg);
+      }
+      .surface {
+        position: relative;
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        width: 100%;
+        min-height: 0;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 50% 28%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 30rem),
+          radial-gradient(circle at 10% 100%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 28rem),
+          var(--bg);
+      }
+      body::before {
+        position: fixed;
+        inset: 0;
+        background-image: radial-gradient(color-mix(in srgb, var(--accent) 34%, transparent) .7px, transparent .7px);
+        background-size: 22px 22px;
+        opacity: .16;
+        content: "";
+        pointer-events: none;
+        mask-image: radial-gradient(ellipse at 50% 38%, #000 0%, transparent 72%);
+      }
+      .shell {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        z-index: 3;
+        flex: 1 1 auto;
+        width: min(940px, calc(100vw - 88px));
+        height: auto;
+        min-height: 0;
+        max-height: none;
+        margin: 0 auto;
+        justify-content: safe center;
+        padding: 46px 0 34px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: none;
+        pointer-events: auto;
+      }
+      .shell::-webkit-scrollbar { width: 0; height: 0; }
+      #plugin-pages { display:flex; flex:none; gap:16px; align-items:center; justify-content:center; margin-top:16px; color:var(--muted); font-size:12px; }
+      #plugin-pages[hidden] { display:none; }
+      #plugin-pages button { border-radius:999px; padding:7px 14px; }
+      @media (max-height: 760px) {
+        .shell { justify-content: flex-start; }
+      }
+      .brand {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 22px;
+      }
+      .brand img {
+        width: min(250px, 34vw);
+        height: auto;
+        filter: none;
+      }
+      :root[data-theme="light"] .card { box-shadow: none; }
+      .intro,
+      .cards,
+      .footer,
+      .empty,
+      .error {
+        position: relative;
+        z-index: 4;
+      }
+      .intro { text-align: center; }
+      h1 {
+        margin: 0;
+        font-size: clamp(26px, 3vw, 36px);
+        letter-spacing: -.035em;
+        line-height: 1.14;
+      }
+      .subtitle {
+        max-width: none;
+        margin: 12px auto 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.7;
+        white-space: normal;
+      }
+      .note {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 14px;
+        padding: 8px 12px;
+        border: 1px solid var(--line-soft);
+        border-radius: 999px;
+        color: var(--muted);
+        font-size: 12px;
+        background: color-mix(in srgb, var(--panel) 72%, transparent);
+      }
+      .note::before {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--success);
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--success) 13%, transparent);
+        content: "";
+      }
+      .tiers {
+        display: inline-flex;
+        gap: 4px;
+        margin-top: 16px;
+        padding: 4px;
+        border: 1px solid var(--line-soft);
+        border-radius: 12px;
+        background: color-mix(in srgb, var(--panel) 72%, transparent);
+      }
+      .tier {
+        min-height: 32px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 8px;
+        color: var(--muted);
+        font-size: 12px;
+        background: transparent;
+      }
+      .tier[aria-selected="true"] { color: var(--text); background: var(--card-hover-surface); }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 24px;
+      }
+      .card {
+        position: relative;
+        display: grid;
+        grid-template-columns: 22px minmax(0, 1fr);
+        gap: 12px;
+        min-height: 104px;
+        padding: 13px 15px;
+        border: 1px solid var(--card-border);
+        border-radius: 16px;
+        color: var(--card-text);
+        background: var(--card-surface);
+        box-shadow: 0 18px 44px rgba(0, 0, 0, .12);
+        cursor: pointer;
+        outline: none;
+        transition: border-color .18s ease, background .18s ease, transform .18s ease, box-shadow .18s ease;
+      }
+      .card:hover { border-color: var(--card-hover-border); background: var(--card-hover-surface); transform: translateY(-1px); }
+      .card.selected:hover { background: var(--selection-surface); }
+      .card:focus-visible {
+        border-color: var(--selection-border);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 24%, transparent);
+      }
+      .card:focus-within {
+        border-color: var(--selection-border);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 24%, transparent);
+      }
+      .card.installed { cursor: default; opacity: .78; }
+      .card.installed:hover { border-color: var(--line-soft); transform: none; }
+      .card.selected {
+        border-color: var(--selection-border);
+        background: var(--selection-surface);
+        color: var(--selection-text);
+      }
+      .card.selected h2 { color: var(--selection-text); }
+      .card.selected p,
+      .card.selected .card-meta { color: var(--selection-muted); }
+      .card.selected .tag {
+        color: var(--selection-tag-text);
+        background: var(--selection-tag-surface);
+      }
+      .card input {
+        width: 20px;
+        height: 20px;
+        margin: 0;
+        align-self: start;
+        accent-color: var(--selection-surface);
+        cursor: pointer;
+      }
+      .card.installed input { cursor: default; }
+      .card h2 {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        font-size: 15px;
+        line-height: 1.35;
+      }
+      .tag {
+        padding: 3px 7px;
+        border-radius: 999px;
+        color: var(--card-tag-text);
+        font-size: 10px;
+        font-weight: 700;
+        background: var(--card-tag-surface);
+      }
+      .tag.installed {
+        color: var(--success);
+        background: color-mix(in srgb, var(--success) 14%, transparent);
+      }
+      .card p {
+        display: -webkit-box;
+        margin: 6px 0 0;
+        overflow: hidden;
+        color: var(--card-muted);
+        font-size: 12px;
+        line-height: 1.55;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+      }
+      .card-meta {
+        display: flex;
+        gap: 12px;
+        margin-top: 8px;
+        color: var(--card-muted);
+        font-size: 11px;
+      }
+      .empty, .error {
+        margin-top: 34px;
+        padding: 24px;
+        border: 1px solid var(--line-soft);
+        border-radius: 16px;
+        color: var(--muted);
+        text-align: center;
+        background: var(--panel);
+      }
+      .error { color: var(--danger); }
+      .footer {
+        position: sticky;
+        bottom: 0;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) max-content;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        margin-top: 20px;
+        padding: 12px 0 2px;
+        background: transparent;
+        border-top: 1px solid var(--line-soft);
+      }
+      .status {
+        min-width: 0;
+        min-height: 20px;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .status[hidden] { display: none; }
+      .status-area {
+        display: grid;
+        min-width: 0;
+        gap: 8px;
+      }
+      .progress-region {
+        display: grid;
+        min-width: 0;
+        gap: 6px;
+      }
+      .progress-region[hidden] { display: none; }
+      .progress-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-width: 0;
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .progress-label {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .progress-value {
+        flex: none;
+        font-variant-numeric: tabular-nums;
+      }
+      .progress-track {
+        position: relative;
+        width: 100%;
+        height: 5px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--line) 70%, transparent);
+      }
+      .progress-fill {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--accent);
+        transform: scaleX(0);
+        transform-origin: left center;
+        transition: transform .2s ease;
+      }
+      .progress-region.indeterminate .progress-fill {
+        transform: scaleX(.28);
+        opacity: .72;
+      }
+      .status.success { color: var(--success); }
+      .status.error { margin: 0; padding: 0; border: 0; background: transparent; text-align: left; }
+      .actions {
+        display: flex;
+        flex: none;
+        min-width: max-content;
+        flex-shrink: 0;
+        gap: 10px;
+        white-space: nowrap;
+      }
+      button {
+        min-height: 40px;
+        padding: 0 17px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        color: var(--text);
+        font: inherit;
+        font-size: 13px;
+        font-weight: 650;
+        background: transparent;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background .18s ease, border-color .18s ease, opacity .18s ease;
+      }
+      button:hover:not(:disabled) { border-color: var(--selection-border); background: color-mix(in srgb, var(--selection-surface) 72%, transparent); }
+      button.primary { border-color: var(--button-surface); color: var(--button-text); background: var(--button-surface); }
+      button.primary:hover:not(:disabled) { border-color: var(--button-hover); background: var(--button-hover); }
+      button:disabled { cursor: not-allowed; opacity: .48; }
+      @media (max-width: 820px) {
+        body { min-width: 0; }
+        .shell { width: min(620px, calc(100vw - 44px)); padding-top: 54px; }
+        .subtitle { max-width: 100%; white-space: normal; }
+        .cards { grid-template-columns: 1fr; }
+        .footer { display: flex; align-items: flex-start; flex-direction: column; }
+        .actions { width: 100%; min-width: 0; }
+        .actions button { flex: 1; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="drag-strip" aria-hidden="true"></div>
+    <div class="surface">
+      <main class="shell">
+      <div class="brand"><img src="../../assets/dsh-wordmark.svg" alt="DeepSeek Harness"></div>
+      <section class="intro" aria-labelledby="title">
+        <h1 id="title">选择你的起步插件</h1>
+        <p class="subtitle">你可以在这里选择经过整理的推荐插件；未勾选的内容不会被安装，之后也可以在 DSH 原生插件市场中管理。</p>
+        <div class="note">确认选择后自动安装、隔离校验并重启 Harness</div>
+        <div class="tiers" role="tablist" aria-label="插件范围">
+          <button class="tier" type="button" role="tab" aria-selected="true" data-tier="base">基础（3）</button>
+          <button class="tier" type="button" role="tab" aria-selected="false" data-tier="full">完整套件</button>
+        </div>
+      </section>
+      <section id="cards" class="cards" aria-label="推荐插件"></section>
+      <nav id="plugin-pages" aria-label="插件分页" hidden><button id="previous-page" type="button">上一页</button><span id="page-count" aria-live="polite"></span><button id="next-page" type="button">下一页</button></nav>
+      <div id="message" class="empty" role="status" aria-live="polite" hidden></div>
+      <footer class="footer">
+        <div class="status-area">
+          <div id="progress-region" class="progress-region" hidden aria-live="polite">
+            <div class="progress-head">
+              <span id="progress-label" class="progress-label">准备安装</span>
+              <span id="progress-value" class="progress-value">0%</span>
+            </div>
+            <div id="progress-track" class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="准备安装">
+              <span id="progress-fill" class="progress-fill"></span>
+            </div>
+          </div>
+          <div id="status" class="status" role="status" aria-live="polite">正在读取推荐列表…</div>
+        </div>
+        <div class="actions">
+          <button id="skip" type="button">稍后再说</button>
+          <button id="install" class="primary" type="button" disabled>完成选择并自动安装</button>
+        </div>
+      </footer>
+      </main>
+    </div>
+    <script>
+          (() => {
+            const bridge = window.dshOnboarding
+            const brandLogo = document.querySelector('.brand img')
+            if (brandLogo) brandLogo.src = document.documentElement.dataset.theme === 'light'
+              ? '../../assets/dsh-wordmark-dark.svg'
+              : '../../assets/dsh-wordmark.svg'
+            const cards = document.getElementById('cards')
+        const message = document.getElementById('message')
+        const status = document.getElementById('status')
+        const progressRegion = document.getElementById('progress-region')
+        const progressLabel = document.getElementById('progress-label')
+        const progressValueLabel = document.getElementById('progress-value')
+        const progressTrack = document.getElementById('progress-track')
+        const progressFill = document.getElementById('progress-fill')
+        const skip = document.getElementById('skip')
+        const install = document.getElementById('install')
+        const tierButtons = [...document.querySelectorAll('[data-tier]')]
+        let entries = []
+        let allEntries = []
+        let busy = false
+        let installedCount = 0
+        let progressValue = 0
+        let progressVisible = false
+        let activeTransactionId = ''
+        let preselectAll = false
+        let currentTier = 'base'
+        let autoConfigureTriggered = false
+        const selected = new Set()
+        const basePackageNames = new Set(['dshmarket', 'dsh-better-sidebar', 'dsh-notification'])
+        const normalizeRecommendations = value => Array.isArray(value)
+          ? value
+            .filter(entry => entry && typeof entry === 'object' && typeof entry.id === 'string' && entry.id !== '')
+            .map(entry => ({
+              ...entry,
+              // Older installed desktop builds did not include tier. Keep
+              // those responses visible while the source build rolls forward.
+              tier: entry.tier === 'base' || entry.tier === 'full'
+                ? entry.tier
+                : basePackageNames.has(String(entry.packageName || '').toLowerCase()) ? 'base' : 'full',
+            }))
+          : []
+         const pluginLabels = {
+          'dsh-genui':['交互面板','在会话中展示可交互的工具界面','界面与输入'],
+          'dsh-client-ui-task-board':['任务看板','集中查看与管理任务','工作流与记忆'],
+          'dsh-doctor':['运行诊断','检查运行环境与恢复选项','工具与连接'],
+          'dsh-liangshen':['量身预设','扩展智能体工作预设','工作流与记忆'],
+          'dsh-agency-agents':['专家智能体','按领域调用专家协作','工作流与记忆'],
+          'dsh-archive-manager':['归档管理','查找和管理归档会话','工作流与记忆'],
+          'dsh-automation':['定时任务','安排周期性工作','工作流与记忆'],
+          'dsh-codex-ui':['侧栏与会话界面','统一导航和任务列表','界面与输入'],
+          'dsh-im-connect':['消息平台连接','连接消息平台，需自行配置账号','工具与连接'],
+          'dsh-skills-manager':['技能管理','浏览与管理本地技能','工作流与记忆'],
+          'better-dsh-pet':['桌面伙伴','桌宠与工作状态动效','界面与输入'],
+          'dsh-at-file':['文件提及','用 @ 引用工作区文件','工具与连接'],
+          'dsh-better-sidebar':['侧边工具栏','文件、终端与辅助面板','界面与输入'],
+          'dsh-client-auto-continue':['中断续接','按配置处理意外中断','工作流与记忆'],
+          'dsh-context':['上下文查看','查看模型收到的上下文组成','工具与连接'],
+          'dsh-codex-connect':['Codex 账号连接','需自行登录，使用条件取决于账号','工具与连接'],
+          'dsh-easyrewrite':['提示词改写','辅助整理与改写提示词','界面与输入'],
+          'dsh-find-plugin':['插件查找','按用途检索社区插件','工具与连接'],
+          'dsh-free-search':['网页搜索','多搜索源，部分来源需自行配置','工具与连接'],
+          'dsh-meme':['表情包','在对话中使用表情素材','界面与输入'],
+          'dsh-mnemon':['记忆系统','创建你自己的记忆库，不含分享者记忆','工作流与记忆'],
+          'dsh-notification':['任务通知','接收任务状态通知','界面与输入'],
+          'dsh-prompt-polish':['提示词优化','优化当前草稿，模型需自行接入','界面与输入'],
+          'dsh-reasoning-effort':['推理强度','调整支持该能力的模型档位','界面与输入'],
+          'dsh-signal':['品牌动效与用量','品牌视觉和已连接账号的用量信息','界面与输入'],
+          'dsh-stt-input':['语音输入','转写需可用的识别服务或自行配置 API','界面与输入'],
+          'dshmarket':['插件市场','安装、更新与管理插件','工具与连接'],
+        }
+        const labelFor = entry => pluginLabels[(entry.packageName || '').split('/').pop()] || [entry.name, entry.description?.zh || '社区扩展', '工具与连接']
+        let pageIndex = 0
+        const pageSize = 6
+
+        const setStatus = (text, kind = '') => {
+          status.textContent = text
+          status.className = `status ${kind}`.trim()
+          status.hidden = progressVisible
+          status.title = ''
+        }
+        const setProgress = ({ label = '正在处理…', value = progressValue, indeterminate = false, visible = true } = {}) => {
+          const numeric = Number.isFinite(Number(value))
+            ? Math.max(0, Math.min(100, Math.round(Number(value))))
+            : progressValue
+          progressValue = numeric
+          progressVisible = visible
+          progressRegion.hidden = !visible
+          if (!visible) progressRegion.title = ''
+          status.hidden = visible
+          progressRegion.classList.toggle('indeterminate', visible && indeterminate === true)
+          progressLabel.textContent = typeof label === 'string' && label !== '' ? label : '正在处理…'
+          progressValueLabel.textContent = indeterminate === true ? '' : `${numeric}%`
+          progressFill.style.transform = `scaleX(${indeterminate === true ? 0.28 : numeric / 100})`
+          progressTrack.setAttribute('aria-valuenow', String(numeric))
+          progressTrack.setAttribute('aria-valuetext', indeterminate === true ? progressLabel.textContent : `${numeric}%`)
+        }
+        const hideProgress = () => setProgress({ visible: false, indeterminate: false })
+        const errorDetail = error => {
+          if (typeof error === 'string') return error
+          if (error?.message) return error.message
+          return String(error || '')
+        }
+        const showError = error => {
+          const detail = errorDetail(error)
+          let message = detail || '操作失败，请重试。'
+          if (/ERR_PNPM_PACKAGE_NOT_FOUND|No matching version found/i.test(detail)) {
+            message = '当前 DSH 发布通道暂不可用，插件尚未安装，请重试。'
+          } else if (/readStream must be readable/i.test(detail)) {
+            message = '安装脚本输出通道异常，当前环境未被替换，请重试。'
+          } else if (/cleanup incomplete|identity lost/i.test(detail)) {
+            message = '插件安装未完成，已安全保留当前环境，请重试。'
+          } else if (/candidate release id does not match|candidate path does not match|manifest identity|parent release/i.test(detail)) {
+            message = '候选环境身份校验未通过，当前版本未被替换。请重试。'
+          } else if (/DSH plugin command did not complete successfully|PLUGIN_COMMAND_FAILED/i.test(detail)) {
+            message = '插件安装命令未正常完成，当前版本未被替换。请重试。'
+          } else if (/symbolic link|reparse|operation not permitted, symlink/i.test(detail)) {
+            message = '候选环境包含 Windows 不允许的链接，当前版本未被替换。请重试。'
+          } else if (message.length > 180) {
+            message = `${message.slice(0, 177)}…`
+          }
+          setStatus(message, 'error')
+          if (progressVisible) {
+            setProgress({ label: message, value: progressValue, indeterminate: false })
+            progressRegion.title = detail && detail !== message ? detail : ''
+          }
+          if (detail && detail !== message) status.title = detail
+        }
+        const selectedIds = () => [...selected]
+        const updateSelection = () => {
+              const displayedSelected = new Set(selectedIds())
+              cards.querySelectorAll('.card').forEach(card => card.classList.toggle('selected', displayedSelected.has(card.dataset.id)))
+              install.disabled = busy || displayedSelected.size === 0
+              if (busy) return
+              setStatus(displayedSelected.size === 0
+                ? `已识别 ${installedCount} 个已安装插件；你可以跳过，之后在插件市场中管理。`
+                : `已选择 ${displayedSelected.size} 个插件，点击后将自动安装并重启。`)
+        }
+        const render = () => {
+          document.querySelector('.shell').dataset.full = String(currentTier === 'full')
+          document.getElementById('plugin-pages').hidden = currentTier !== 'full'
+          cards.replaceChildren()
+          const pageCount = Math.max(1, Math.ceil(entries.length / pageSize))
+          pageIndex = Math.min(pageIndex, pageCount - 1)
+          const visibleEntries = currentTier === 'base' ? entries : entries.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize)
+          document.getElementById('page-count').textContent = `第 ${pageIndex + 1} / ${pageCount} 页 · 共 ${entries.length} 项`
+          document.getElementById('previous-page').disabled = pageIndex === 0
+          document.getElementById('next-page').disabled = pageIndex >= pageCount - 1
+          visibleEntries.forEach(entry => {
+            const label = document.createElement('label')
+            label.className = `card${entry.installed === true ? ' installed' : ''}`
+            label.dataset.id = entry.id
+            const input = document.createElement('input')
+            input.type = 'checkbox'
+            input.value = entry.id
+            input.tabIndex = 0
+            input.disabled = busy || entry.installed === true
+                input.checked = selected.has(entry.id)
+            input.dataset.installed = entry.installed === true ? 'true' : 'false'
+            input.addEventListener('change', () => {
+                  if (input.checked) selected.add(entry.id)
+                  else selected.delete(entry.id)
+              updateSelection()
+            })
+            const content = document.createElement('div')
+            const title = document.createElement('h2')
+            title.textContent = entry.name || entry.packageName
+            title.title = entry.packageName || entry.name
+            const tag = document.createElement('span')
+            tag.className = 'tag'
+            if (entry.installed === true) {
+              tag.classList.add('installed')
+              tag.textContent = entry.installedEnabled === false ? '已安装 · 已停用' : '已安装'
+            } else {
+              tag.textContent = currentTier === 'full' ? labelFor(entry)[2] : entry.category === 'market' ? '推荐' : '可选'
+            }
+            title.append(tag)
+            const description = document.createElement('p')
+            description.textContent = currentTier === 'full' ? labelFor(entry)[1] : entry.description?.zh || entry.description?.en || '社区插件'
+            description.title = description.textContent
+            const meta = document.createElement('div')
+            meta.className = 'card-meta'
+            const details = []
+            if (entry.installedVersion) details.push(`当前 ${entry.installedVersion}`)
+            if (entry.stars !== null) details.push(`${entry.stars} stars`)
+            if (details.length === 0) details.push('社区插件')
+            meta.textContent = details.join(' · ')
+            content.append(title, description, meta)
+            label.append(input, content)
+            cards.append(label)
+          })
+          if (visibleEntries.length === 0) {
+            message.hidden = false
+            message.textContent = entries.length
+              ? '当前页没有可显示的插件，请切换分页或分类。'
+              : installedCount > 0
+                ? `当前没有可安装的推荐插件，已识别 ${installedCount} 个已安装插件；你可以跳过，之后在插件市场中管理。`
+                : '当前没有可用的推荐插件；你可以跳过，之后在插件市场中管理。'
+          } else {
+            message.hidden = true
+          }
+          updateSelection()
+        }
+        document.getElementById('previous-page').addEventListener('click', () => { if (pageIndex > 0) { pageIndex--; render() } })
+        document.getElementById('next-page').addEventListener('click', () => { if ((pageIndex + 1) * pageSize < entries.length) { pageIndex++; render() } })
+        const setTier = tier => {
+          if (busy || (tier !== 'base' && tier !== 'full')) return
+          currentTier = tier
+          pageIndex = 0
+          tierButtons.forEach(button => button.setAttribute('aria-selected', String(button.dataset.tier === tier)))
+          entries = allEntries.filter(entry => tier === 'full' || entry.tier === 'base')
+          render()
+        }
+        tierButtons.forEach(button => button.addEventListener('click', () => setTier(button.dataset.tier)))
+        const triggerAutoConfigure = () => {
+          if (autoConfigureTriggered || busy || selectedIds().length === 0) return
+          autoConfigureTriggered = true
+          install.click()
+        }
+        const setBusy = value => {
+          busy = value
+          skip.disabled = value
+          cards.querySelectorAll('input').forEach(input => { input.disabled = value || input.dataset.installed === 'true' })
+          updateSelection()
+        }
+
+        skip.addEventListener('click', async () => {
+          if (busy || !bridge?.skip) return
+          setBusy(true)
+          hideProgress()
+          setStatus('正在进入 Harness…')
+          try {
+            const result = await bridge.skip()
+            if (result?.ok) return
+            setBusy(false)
+            showError(result?.error || '无法进入 Harness。')
+          } catch (error) {
+            setBusy(false)
+            showError(error?.message || '无法进入 Harness。')
+          }
+        })
+
+        install.addEventListener('click', async () => {
+          if (busy || !bridge?.install) return
+          const selected = selectedIds()
+          if (selected.length === 0) return
+          activeTransactionId = typeof globalThis.crypto?.randomUUID === 'function'
+            ? `onboarding-${globalThis.crypto.randomUUID()}`
+            : `onboarding-${Date.now()}-${Math.random().toString(16).slice(2)}`
+          setBusy(true)
+          setProgress({ label: '正在验证 DSH 运行环境…', value: 8, indeterminate: true })
+          setStatus('正在验证 DSH 运行环境…')
+          try {
+            const result = await bridge.install({ selectedIds: selected, transactionId: activeTransactionId })
+            if (result?.transactionId && result.transactionId !== activeTransactionId) {
+              throw new Error('插件安装响应与当前事务不匹配，请重试。')
+            }
+            if (result?.ok) {
+              setStatus('插件已验证，正在重启 Harness…', 'success')
+              return
+            }
+            setBusy(false)
+            activeTransactionId = ''
+            showError(result?.error || '插件安装失败，未应用任何已选变更。')
+          } catch (error) {
+            setBusy(false)
+            activeTransactionId = ''
+            showError(error?.message || '插件安装失败，未应用任何已选变更。')
+          }
+        })
+
+        const unsubscribeProgress = bridge?.progress?.subscribe?.(value => {
+          if (!value || typeof value !== 'object') return
+          if (!busy || activeTransactionId === '' || value.transactionId !== activeTransactionId) return
+          setProgress(value)
+        })
+        if (typeof unsubscribeProgress === 'function') {
+          window.addEventListener('beforeunload', unsubscribeProgress, { once: true })
+        }
+
+        const load = async () => {
+          if (!bridge?.recommendations) {
+            showError('推荐页桥接不可用，请跳过并从原生插件市场安装。')
+            return
+          }
+          const result = await bridge.recommendations()
+          if (!result?.ok) {
+            showError(result?.error || '推荐列表读取失败。')
+            return
+          }
+          allEntries = normalizeRecommendations(result.recommendations)
+          preselectAll = result.preselectAll === true
+          selected.clear()
+          if (preselectAll) allEntries.filter(entry => entry.installed !== true).forEach(entry => selected.add(entry.id))
+          const autoConfigure = result.autoConfigure === true
+            && result.flavor === 'suite'
+            && result.level === 'full'
+          currentTier = autoConfigure || result.flavor === 'suite' ? 'full' : 'base'
+          if (autoConfigure) {
+            selected.clear()
+            allEntries.filter(entry => entry.installed !== true).forEach(entry => selected.add(entry.id))
+            document.getElementById('title').textContent = '正在完成首次联网自动配置'
+            document.querySelector('.subtitle').textContent = '首次联网自动配置将安装完整档中尚未安装的插件；失败时保留当前环境，你可以手动重试。'
+            document.querySelector('.note').textContent = '首次联网自动配置 · 可手动重试'
+            install.textContent = '手动重试安装'
+            skip.textContent = '跳过自动配置'
+          }
+          entries = allEntries.filter(entry => currentTier === 'full' || entry.tier === 'base')
+          tierButtons.forEach(button => button.setAttribute('aria-selected', String(button.dataset.tier === currentTier)))
+          if (result.flavor === 'suite' && !autoConfigure) {
+            document.getElementById('title').textContent = '安装推荐插件'
+            document.querySelector('.subtitle').textContent = '已预选当前套件中尚未安装的插件，你可以按需取消；安装会在隔离候选中验证，失败时保留原环境。'
+            document.querySelector('.note').textContent = '一次安装 · 静态与运行时门禁 · 自动回退'
+            install.textContent = '安装推荐插件'
+            skip.textContent = '暂不安装插件'
+          }
+          installedCount = Number.isSafeInteger(result.installedCount) && result.installedCount >= 0
+            ? result.installedCount
+            : allEntries.filter(entry => entry.installed === true).length
+          render()
+          if (autoConfigure) triggerAutoConfigure()
+        }
+        load().catch(error => showError(error?.message || '推荐列表读取失败。'))
+      })()
+    </script>
+  </body>
+</html>

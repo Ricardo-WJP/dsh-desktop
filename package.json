@@ -1,0 +1,195 @@
+{
+  "name": "dsh-desktop",
+  "version": "0.1.57",
+  "description": "Community desktop wrapper for the DeepSeek Harness Web UI",
+  "type": "module",
+  "main": "src/main.js",
+  "author": {
+    "name": "DeepSeek Harness Desktop contributors",
+    "email": "liguobao@users.noreply.github.com"
+  },
+  "homepage": "https://github.com/liguobao/dsh-desktop#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/liguobao/dsh-desktop.git"
+  },
+  "bugs": {
+    "url": "https://github.com/liguobao/dsh-desktop/issues"
+  },
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "postinstall": "patch-package",
+    "build:preloads": "node scripts/generate-preloads.mjs",
+    "prestart": "npm run build:preloads",
+    "start": "npm run build:renderer && electron .",
+    "dev:desktop": "node scripts/dev-desktop.mjs",
+    "design": "node scripts/dev-desktop.mjs",
+    "build:renderer": "vite build",
+    "build:profile": "node scripts/build-profile.mjs",
+    "renderer:typecheck": "tsc --noEmit",
+    "typecheck:renderer": "npm run renderer:typecheck",
+    "typecheck": "npm run renderer:typecheck",
+    "pretest": "npm run build:preloads && npm run build:renderer",
+    "test": "node --test \"test/**/*.test.js\"",
+    "catalog:generate": "node scripts/generate-plugin-catalog.mjs",
+    "precheck": "npm run build:preloads && node --check src/release/candidate-builder.js && node --check src/release/snapshot-store.js && node --check src/profile/runtime-gate.js",
+    "check": "node --check src/main.js && node --check src/app-identity.js && node --check src/distribution-flavor.js && node --check src/plugin-suite.js && node --check src/plugin-suite-runtime.js && node --check src/process-tree.js && node --check src/profile/compatibility-gate.js && node --check src/profile/runtime-gate.js && node --check src/runtime/process-owner.js && node --check src/runtime/stable-supervisor.js && node --check src/runtime/dev-supervisor.js && node --check src/runtime/mode-supervisor.js && node --check src/runtime/settle-with-abort.js && node --check src/runtime/index.js && node --check src/quit-lifecycle.js && node --check src/diagnostics.js && node --check src/auto-update.js && node --check src/dsh-runtime.js && node --check src/dsh-update.js && node --check src/release/manifest.js && node --check src/release/state-store.js && node --check src/release/process-ownership.js && node --check src/profile/template-builder.js && node --check src/desktop-integration.js && node --check src/harness-server.js && node --check src/navigation.js && node --check src/plugin-catalog.js && node --check src/plugin-management.js && node --check src/owned-command.js && node --check src/startup-progress.js && node --check src/startup-lifecycle.js && node --check src/operation-coordinator.js && node --check src/workspace-readiness.js && node --check src/desktop-runtime-controller.js && node --check src/plugin-compatibility.js && node --check src/build-plan.js && node --check src/desktop-launcher.js && node --check src/ipc/contracts.js && node --check src/ipc/registration.js && node --check src/ipc/desktop-host.js && node --check src/ipc/channels.cjs && node --check src/ipc/preload-generator.js && node --check src/parent-watch.cjs && node --check build/preload/preload.cjs && node --check build/preload/workspace-preload.cjs && node --check src/plugins/dsh-desktop-integration/lib/index.js && node --check src/plugins/dsh-desktop-integration/lib/client.js && node --check scripts/dev-desktop.mjs && node --check scripts/build-desktop.mjs && node --check scripts/build-profile.mjs && node --check scripts/prepare-plugin-suite-assets.mjs && node --check scripts/generate-preloads.mjs && node --check scripts/generate-plugin-catalog.mjs && node --check scripts/verify-live-prompt-polish-settings.mjs && node --check test-support/electron-sandbox-smoke.cjs",
+    "dist": "node scripts/build-desktop.mjs all",
+    "dist:linux": "node scripts/build-desktop.mjs linux",
+    "dist:mac": "node scripts/build-desktop.mjs mac",
+    "dist:windows": "node scripts/build-desktop.mjs windows",
+    "dist:mac:suite": "node scripts/build-desktop.mjs mac --suite",
+    "dist:windows:suite": "node scripts/build-desktop.mjs windows --suite"
+  },
+  "dependencies": {
+    "@deepseek-ai/cordis-plugin-group": "1.0.1",
+    "@deepseek-ai/dsh": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-anonymous-user-id": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-atomic-write": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-bash-local": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-code-runtime": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-compaction": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-fs": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-invariants": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-output-retention": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-sandbox": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-scope": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-session-telemetry": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-session-title-llm": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-shell": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-spill": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-subagent-in-process-driver": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-subprocess": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-timeout": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-workflow": "0.1.1-rc.2",
+    "koffi": "3.2.1",
+    "pnpm": "11.21.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "semver": "7.8.5",
+    "yaml": "2.9.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "@vitejs/plugin-react": "6.1.1",
+    "electron": "44.2.0",
+    "electron-builder": "26.15.3",
+    "patch-package": "8.0.1",
+    "typescript": "7.0.2",
+    "vite": "8.2.2"
+  },
+  "build": {
+    "appId": "io.github.dshdesktop.app",
+    "productName": "DeepSeek Harness Desktop",
+    "asar": false,
+    "compression": "normal",
+    "npmRebuild": false,
+    "files": [
+      "src/**/*",
+      "profiles/**/*",
+      "compatibility/**/*",
+      "build/renderer/**/*",
+      "build/preload/**/*",
+      "assets/**/*",
+      "package.json",
+      "LICENSE",
+      "NOTICE.md"
+    ],
+    "extraResources": [
+      {
+        "from": "profiles/evidence/web-2026-08-22/pnpm-lock.yaml",
+        "to": "app/profiles/evidence/web-2026-08-22/pnpm-lock.yaml"
+      }
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "icon": "assets/icon-white.png",
+      "artifactName": "DSH-Desktop-v${version}-macos-${arch}.${ext}",
+      "target": [
+        "dmg"
+      ],
+      "hardenedRuntime": true,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.inherit.plist",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "DSH uses the microphone only when you start voice input."
+      },
+      "notarize": true
+    },
+    "dmg": {
+      "sign": true,
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 270,
+          "y": 220,
+          "type": "file",
+          "path": "build/macos-install-notes.txt",
+          "name": "安装说明.txt"
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "win": {
+      "icon": "assets/icon-white.ico",
+      "requestedExecutionLevel": "asInvoker",
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "artifactName": "DSH-Desktop-v${version}-windows-${arch}-setup.${ext}",
+      "oneClick": false,
+      "perMachine": false,
+      "selectPerMachineByDefault": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false,
+      "differentialPackage": false,
+      "packElevateHelper": false,
+      "runAfterFinish": true,
+      "unicode": true,
+      "warningsAsErrors": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "installerIcon": "assets/icon-white.ico",
+      "uninstallerIcon": "assets/icon-white.ico",
+      "installerHeader": "build/installer/header.bmp",
+      "installerSidebar": "build/installer/sidebar-logo.bmp",
+      "uninstallerSidebar": "build/installer/sidebar-logo.bmp"
+    },
+    "portable": {
+      "artifactName": "DSH-Desktop-v${version}-windows-${arch}-portable.${ext}",
+      "requestExecutionLevel": "user"
+    },
+    "linux": {
+      "icon": "assets/icon-white.png",
+      "category": "Development",
+      "executableName": "deepseek-harness-desktop",
+      "maintainer": "DeepSeek Harness Desktop Contributors <liguobao@users.noreply.github.com>",
+      "target": [
+        "AppImage"
+      ]
+    },
+    "appImage": {
+      "artifactName": "DSH-Desktop-v${version}-linux-x64.${ext}"
+    }
+  }
+}

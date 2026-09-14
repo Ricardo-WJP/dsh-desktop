@@ -1,0 +1,357 @@
+name: Test and opt-in package artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_packages:
+        description: >-
+          Build Windows and macOS test packages only after optimization/performance
+          acceptance is complete.
+        required: true
+        default: false
+        type: boolean
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows x64
+            runner: windows-latest
+          - name: macOS Intel x64
+            runner: macos-15-intel
+          - name: macOS Apple Silicon arm64
+            runner: macos-15
+
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Use canonical temporary paths for security tests
+        shell: bash
+        run: |
+          node -e "const fs=require('node:fs'); const p=fs.realpathSync(process.env.RUNNER_TEMP); fs.appendFileSync(process.env.GITHUB_ENV,['TMP','TEMP','TMPDIR'].map(k=>k+'='+p).join('\n')+'\n');"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        shell: bash
+        run: |
+          mkdir -p output/release-acceptance
+          npm test \
+            > >(tee output/release-acceptance/ci-test.stdout.log) \
+            2> >(tee output/release-acceptance/ci-test.stderr.log >&2)
+
+      - name: Upload release acceptance failure evidence
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: release-acceptance-failure-${{ matrix.name }}
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            output/release-acceptance/ci-test.stdout.log
+            output/release-acceptance/ci-test.stderr.log
+            output/release-acceptance/**/report.json
+            output/release-acceptance/**/receipt.json
+            output/release-acceptance/**/release-acceptance-artifact.json
+            output/release-acceptance/**/native-data-report.json
+            output/release-acceptance/**/*.stdout.log
+            output/release-acceptance/**/*.stderr.log
+            !output/release-acceptance/**/electron-user-data/**
+            !output/release-acceptance/**/electron-tmp/**
+            !output/release-acceptance/**/home*/**
+            !output/release-acceptance/home*/**
+            !output/release-acceptance/**/temp*/**
+            !output/release-acceptance/temp*/**
+            !output/release-acceptance/**/tmp*/**
+            !output/release-acceptance/tmp*/**
+            !output/release-acceptance/**/credential*/**
+            !output/release-acceptance/credential*/**
+            !output/release-acceptance/**/.credentials*/**
+            !output/release-acceptance/.credentials*/**
+            !output/release-acceptance/**/credentials*
+            !output/release-acceptance/**/.credentials*
+            !output/release-acceptance/**/*secret*
+
+      - name: Run syntax checks
+        run: npm run check
+
+      - name: Typecheck renderer
+        run: npm run renderer:typecheck
+
+      - name: Build renderer
+        run: npm run build:renderer
+
+  package:
+    name: Package ${{ matrix.name }}
+    if: ${{ inputs.build_packages == true }}
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows x64 setup and portable
+            runner: windows-latest
+            arch: --x64
+            artifact: windows-x64
+            artifact_glob: dist/DSH-Desktop-Suite-v*-windows-*.exe
+          - name: macOS Intel x64 DMG
+            runner: macos-15-intel
+            arch: --x64
+            artifact: macos-x64
+            artifact_glob: dist/DSH-Desktop-Suite-v*-macos-*.dmg
+          - name: macOS Apple Silicon arm64 DMG
+            runner: macos-15
+            arch: --arm64
+            artifact: macos-arm64
+            artifact_glob: dist/DSH-Desktop-Suite-v*-macos-*.dmg
+
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Use canonical temporary paths for security tests
+        shell: bash
+        run: |
+          node -e "const fs=require('node:fs'); const p=fs.realpathSync(process.env.RUNNER_TEMP); fs.appendFileSync(process.env.GITHUB_ENV,['TMP','TEMP','TMPDIR'].map(k=>k+'='+p).join('\n')+'\n');"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate current release input before packaging
+        shell: bash
+        env:
+          PACKAGE_JSON_PATH: ${{ github.workspace }}/package.json
+          RELEASE_MANIFEST_SOURCE: ${{ github.workspace }}/release-manifest.json
+          RELEASE_VALIDATION_PATH: ${{ github.workspace }}/compatibility/release-validation.json
+        run: |
+          release_id="$(node scripts/verify-current-release-input.mjs \
+            --package-json "$PACKAGE_JSON_PATH" \
+            --release-manifest "$RELEASE_MANIFEST_SOURCE" \
+            --release-validation "$RELEASE_VALIDATION_PATH")"
+          [[ -n "$release_id" ]] || { echo 'Current release input did not return a releaseId.' >&2; exit 1; }
+          printf 'RELEASE_ID=%s\n' "$release_id" >> "$GITHUB_ENV"
+
+      - name: Run tests before packaging
+        run: npm test
+
+      - name: Run syntax checks before packaging
+        run: npm run check
+
+      - name: Typecheck renderer before packaging
+        run: npm run renderer:typecheck
+
+      - name: Build renderer before packaging
+        run: npm run build:renderer
+
+      - name: Build Windows setup and portable packages
+        if: runner.os == 'Windows'
+        run: npm run dist:windows:suite -- ${{ matrix.arch }}
+
+      - name: Build macOS unsigned test DMG
+        if: runner.os == 'macOS'
+        run: npm run dist:mac:suite -- ${{ matrix.arch }} --macos-test
+
+      - name: Verify unmodified native packaged startup
+        shell: bash
+        run: |
+          executable="$(node --input-type=module -e '
+            import fs from "node:fs";
+            import path from "node:path";
+            const pkg=JSON.parse(fs.readFileSync("package.json","utf8"));
+            const name=pkg.build.productName;
+            const dir=process.platform==="win32" ? "win-unpacked" : process.arch==="arm64" ? "mac-arm64" : "mac";
+            const file=process.platform==="win32" ? path.join("dist",dir,name+".exe") : path.join("dist",dir,name+".app","Contents","MacOS",name);
+            if(!fs.statSync(file).isFile())throw Error("Native package executable missing");
+            process.stdout.write(path.resolve(file));
+          ')"
+          node scripts/verify-packaged-startup.mjs \
+            --executable "$executable" \
+            --output-dir "$RUNNER_TEMP/dsh-packaged-startup-output" \
+            --isolated-home "$RUNNER_TEMP/dsh-packaged-startup-home" \
+            --ephemeral-ci --complete-onboarding --timeout-ms 300000
+
+      - name: Upload native startup evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: native-startup-${{ matrix.artifact }}
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            ${{ runner.temp }}/dsh-packaged-startup-output/packaged-startup-report.json
+            ${{ runner.temp }}/dsh-packaged-startup-output/packaged-startup.png
+
+      - name: Verify Windows setup and portable packages
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $setup = @(Get-ChildItem -LiteralPath dist -Filter 'DSH-Desktop-Suite-v*-windows-*-setup.exe' -File)
+          $portable = @(Get-ChildItem -LiteralPath dist -Filter 'DSH-Desktop-Suite-v*-windows-*-portable.exe' -File)
+          if ($setup.Count -ne 1) { throw "Expected one Windows setup package, found $($setup.Count)" }
+          if ($portable.Count -ne 1) { throw "Expected one Windows portable package, found $($portable.Count)" }
+
+      - name: Verify macOS DMG
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          shopt -s nullglob
+          packages=(dist/DSH-Desktop-Suite-v*-macos-*.dmg)
+          [[ ${#packages[@]} -eq 1 ]] || { echo "Expected one macOS DMG, found ${#packages[@]}" >&2; exit 1; }
+
+      - name: Stage Windows release artifacts for evidence
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          RELEASE_STAGING_ROOT: ${{ github.workspace }}\release-staging
+        run: |
+          $dist = Join-Path $env:GITHUB_WORKSPACE 'dist'
+          $stagingRoot = [IO.Path]::GetFullPath($env:RELEASE_STAGING_ROOT)
+          $windowsRoot = Join-Path $stagingRoot 'windows'
+          New-Item -ItemType Directory -Force -Path $windowsRoot | Out-Null
+
+          $setup = @(Get-ChildItem -LiteralPath $dist -Filter 'DSH-Desktop-Suite-v*-windows-*-setup.exe' -File)
+          $portable = @(Get-ChildItem -LiteralPath $dist -Filter 'DSH-Desktop-Suite-v*-windows-*-portable.exe' -File)
+          if ($setup.Count -ne 1) { throw "Expected one Windows suite setup package before staging, found $($setup.Count)" }
+          if ($portable.Count -ne 1) { throw "Expected one Windows suite portable package before staging, found $($portable.Count)" }
+
+          Copy-Item -LiteralPath $setup[0].FullName -Destination (Join-Path $windowsRoot $setup[0].Name)
+          Copy-Item -LiteralPath $portable[0].FullName -Destination (Join-Path $windowsRoot $portable[0].Name)
+
+          Add-Content -LiteralPath $env:GITHUB_ENV -Value "SETUP_RELATIVE=windows/$($setup[0].Name)"
+          Add-Content -LiteralPath $env:GITHUB_ENV -Value "PORTABLE_RELATIVE=windows/$($portable[0].Name)"
+
+      - name: Copy validated release manifest input for Windows evidence
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          RELEASE_MANIFEST_SOURCE: ${{ github.workspace }}\release-manifest.json
+          RELEASE_MANIFEST_PATH: ${{ runner.temp }}\release-manifest.json
+        run: |
+          if (-not (Test-Path -LiteralPath $env:RELEASE_MANIFEST_SOURCE -PathType Leaf)) {
+            throw "Release evidence blocked: trusted release manifest input is missing at $env:RELEASE_MANIFEST_SOURCE; refusing to fabricate release metadata."
+          }
+          Copy-Item -LiteralPath $env:RELEASE_MANIFEST_SOURCE -Destination $env:RELEASE_MANIFEST_PATH -Force
+
+      - name: Generate unsigned Windows release evidence
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          RELEASE_STAGING_ROOT: ${{ github.workspace }}\release-staging
+          RELEASE_EVIDENCE_DIR: ${{ github.workspace }}\release-evidence
+          PACKAGE_LOCK_PATH: ${{ github.workspace }}\package-lock.json
+          PACKAGE_JSON_PATH: ${{ github.workspace }}\package.json
+          RELEASE_MANIFEST_PATH: ${{ runner.temp }}\release-manifest.json
+        run: |
+          New-Item -ItemType Directory -Force -Path $env:RELEASE_EVIDENCE_DIR | Out-Null
+          node scripts/generate-release-evidence.mjs `
+            --staging-root "$env:RELEASE_STAGING_ROOT" `
+            --output-dir "$env:RELEASE_EVIDENCE_DIR" `
+            --package-lock "$env:PACKAGE_LOCK_PATH" `
+            --package-json "$env:PACKAGE_JSON_PATH" `
+            --release-manifest "$env:RELEASE_MANIFEST_PATH" `
+            --setup "$env:SETUP_RELATIVE" `
+            --portable "$env:PORTABLE_RELATIVE" `
+            --required-artifact "$env:SETUP_RELATIVE" `
+            --required-artifact "$env:PORTABLE_RELATIVE" `
+            --release-id "$env:RELEASE_ID"
+          if ($LASTEXITCODE -ne 0) { throw 'Release evidence generation failed closed.' }
+
+          $evidencePath = Join-Path $env:RELEASE_EVIDENCE_DIR 'release-evidence.json'
+          $evidence = Get-Content -LiteralPath $evidencePath -Raw | ConvertFrom-Json
+          if ($evidence.signing.status -ne 'unsigned') {
+            throw 'Release evidence must be explicitly unsigned when no release signing secret is configured.'
+          }
+          $unexpectedSigningFields = @($evidence.signing.PSObject.Properties.Name | Where-Object { $_ -ne 'status' })
+          if ($unexpectedSigningFields.Count -ne 0) {
+            throw 'Unsigned release evidence must not carry detached signature or public key material.'
+          }
+
+          $evidenceValidator = @'
+          import { verifyReleaseEvidence } from './src/release/artifact-manifest.js'
+
+          const [evidencePath, artifactManifestPath, sbomPath, noticesPath, releaseManifestPath, stagingRoot] = process.argv.slice(-6)
+          await verifyReleaseEvidence({
+            evidencePath,
+            artifactManifestPath,
+            sbomPath,
+            noticesPath,
+            releaseManifestPath,
+            stagingRoot,
+          })
+          '@
+          node --input-type=module --eval $evidenceValidator -- `
+            $evidencePath `
+            (Join-Path $env:RELEASE_EVIDENCE_DIR 'artifact-manifest.json') `
+            (Join-Path $env:RELEASE_EVIDENCE_DIR 'bom.cdx.json') `
+            (Join-Path $env:RELEASE_EVIDENCE_DIR 'THIRD-PARTY-NOTICES.md') `
+            $env:RELEASE_MANIFEST_PATH `
+            $env:RELEASE_STAGING_ROOT
+          if ($LASTEXITCODE -ne 0) { throw 'Release evidence checksum or staging validation failed closed.' }
+
+          $publishedManifest = Join-Path $env:RELEASE_EVIDENCE_DIR 'release-manifest.json'
+          Copy-Item -LiteralPath $env:RELEASE_MANIFEST_PATH -Destination $publishedManifest -Force
+          $sourceHash = (Get-FileHash -LiteralPath $env:RELEASE_MANIFEST_PATH -Algorithm SHA256).Hash.ToLowerInvariant()
+          $publishedHash = (Get-FileHash -LiteralPath $publishedManifest -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($sourceHash -ne $publishedHash) {
+            throw 'Published release manifest differs from the trusted input.'
+          }
+
+          foreach ($required in @(
+            'artifact-manifest.json',
+            'bom.cdx.json',
+            'THIRD-PARTY-NOTICES.md',
+            'release-evidence.json',
+            'release-manifest.json'
+          )) {
+            if (-not (Test-Path -LiteralPath (Join-Path $env:RELEASE_EVIDENCE_DIR $required) -PathType Leaf)) {
+              throw "Release evidence output is missing $required"
+            }
+          }
+
+      - name: Upload Windows release evidence
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: dsh-release-evidence-windows-x64
+          if-no-files-found: error
+          path: |
+            release-evidence/artifact-manifest.json
+            release-evidence/bom.cdx.json
+            release-evidence/THIRD-PARTY-NOTICES.md
+            release-evidence/release-evidence.json
+            release-evidence/release-manifest.json
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: dsh-desktop-${{ matrix.artifact }}
+          if-no-files-found: error
+          path: ${{ matrix.artifact_glob }}
