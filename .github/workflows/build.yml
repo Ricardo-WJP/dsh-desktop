@@ -62,7 +62,7 @@ jobs:
 
       - name: Upload release acceptance failure evidence
         if: ${{ failure() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: release-acceptance-failure-${{ matrix.name }}
           if-no-files-found: warn
@@ -200,7 +200,7 @@ jobs:
 
       - name: Upload native startup evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: native-startup-${{ matrix.artifact }}
           if-no-files-found: warn
@@ -338,7 +338,7 @@ jobs:
 
       - name: Upload Windows release evidence
         if: runner.os == 'Windows'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: dsh-release-evidence-windows-x64
           if-no-files-found: error
@@ -350,7 +350,7 @@ jobs:
             release-evidence/release-manifest.json
 
       - name: Upload package artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: dsh-desktop-${{ matrix.artifact }}
           if-no-files-found: error
